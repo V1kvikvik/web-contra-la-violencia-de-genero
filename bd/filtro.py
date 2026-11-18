@@ -11,6 +11,9 @@ Cómo se escribe un término del filtro:
     zorra        la palabra entera, con sus plurales (zorras) y escrita con trucos:
                  mayúsculas, tildes, letras repetidas (zorraaa), números por letras
                  (z0rra), separadores entre letras (z.o.r.r.a, z-o-r-r-a, z o r r a).
+                 Un número o símbolo en lugar de una vocal vale por CUALQUIER vocal:
+                 p4ta, p0ta, p3ta, p*ta y p@ta cuentan como «puta» (pero «pata», escrito
+                 con letras, no).
     maric*       cualquier palabra que empiece así (maricón, maricones, mariconazo...).
     a fregar     una expresión de varias palabras.
 No hace falta escribir tildes: "maricon" ya cubre "maricón".
@@ -18,9 +21,15 @@ No hace falta escribir tildes: "maricon" ya cubre "maricón".
 import re
 import unicodedata
 
-# Sustituciones típicas para esquivar filtros (z0rra, put@, 5ubnormal...)
-_LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t",
-                       "8": "b", "@": "a", "$": "s", "€": "e", "!": "i", "|": "i"})
+# Sustituciones típicas para esquivar filtros (z0rra, put@, p4ta, 5ubnormal...).
+# Lo que suele ponerse en lugar de una vocal se convierte en COMODIN, que en los patrones
+# vale por cualquier vocal: así p4ta (4 = «a») también se detecta como «puta».
+# Si se tradujera a su vocal (4 → a) quedaría «pata» y no coincidiría.
+COMODIN = "0"
+_LEET = str.maketrans({"0": COMODIN, "1": COMODIN, "3": COMODIN, "4": COMODIN, "@": COMODIN,
+                       "€": COMODIN, "!": COMODIN, "|": COMODIN,
+                       "5": "s", "7": "t", "8": "b", "$": "s"})
+_VOCALES = "aeiou"
 # Caracteres que alguien puede meter entre las letras de una palabra: p.u.t.a, p-u-t-a, p*u*t*a
 _SEP = r"[._\-*~+'\"`´·,:;/\\]{0,2}"
 # Letras sueltas separadas por espacios: "p u t a" -> "puta"
@@ -57,9 +66,16 @@ def limpiar_termino(termino):
     return t
 
 
+def _patron_letra(c):
+    # Una vocal también puede estar escrita con el comodín (p4ta, p0ta) o con un * (p*ta).
+    if c in _VOCALES:
+        return "[" + c + COMODIN + r"*]+"
+    return re.escape(c) + "+"
+
+
 def _patron_palabra(palabra):
     # cada letra puede repetirse (zorraaa) y llevar separadores entre medias (z.o.r.r.a)
-    letras = [re.escape(c) + "+" for c in normalizar(palabra)]
+    letras = [_patron_letra(c) for c in normalizar(palabra)]
     return _SEP.join(letras)
 
 
