@@ -5,6 +5,8 @@
 // - Cada 10 s pide la API (URLs en <body data-api-mural / data-api-foro>) y llama a pintarMural (T07) y pintarForo (T09).
 // - Si una petición falla, se queda lo último que se pintó: nunca pantalla en blanco.
 // - Crea un botón de pantalla completa (o se puede usar F11).
+// - Cada 3 s pregunta a /api/pantalla (data-api-control) por las órdenes del panel:
+//   «saltar» a una vista (y seguir rotando desde ahí) o «fijar» una vista hasta soltarla.
 //
 // Para pruebas: /pantalla?seg=20  → cada vista con tiempo dura 20 s en vez de 5 min.
 (() => {
@@ -19,6 +21,7 @@
     tiempoMaxPeticion: 8_000, // si la API no responde en este tiempo, se cancela
     videoArranque: 15_000,    // si el vídeo no ha empezado en este tiempo, se salta
     videoMaximo: 15 * 60_000, // tope de seguridad por si nunca llega 'ended'
+    control: 3_000,           // cada cuánto se preguntan las órdenes del panel
   };
 
   const seg = Number(new URLSearchParams(location.search).get('seg'));
@@ -33,6 +36,8 @@
   let vistaActual = null;
   let temporizador = null;
   let guardia = null;
+  let fijada = null;          // vista fijada desde el panel (null = rotación automática)
+  let ultimoSalto;            // salto_id ya atendido (undefined hasta la primera respuesta)
 
   function limpiarTemporizadores() {
     clearTimeout(temporizador);
@@ -40,9 +45,26 @@
     temporizador = guardia = null;
   }
 
+  function videoRoto() {
+    return !video || !!video.error || video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE;
+  }
+
   function siguiente() {
+    // Fijada: se repite la misma vista (el vídeo vuelve a empezar). Si es el vídeo y no
+    // se puede reproducir, se rota con normalidad para no dejar la pantalla en negro.
+    if (fijada && !(fijada === 'video' && videoRoto())) {
+      mostrarVista(fijada);
+      return;
+    }
     indice = (indice + 1) % CONFIG.secuencia.length;
     mostrarVista(CONFIG.secuencia[indice]);
+  }
+
+  function programarFin(nombre) {
+    clearTimeout(temporizador);
+    temporizador = null;
+    if (nombre === 'video' || nombre === fijada) return; // el vídeo avanza con 'ended'; lo fijado no avanza
+    temporizador = setTimeout(siguiente, CONFIG.duracion[nombre] ?? CONFIG.duracionPorDefecto);
   }
 
   function mostrarVista(nombre) {
@@ -56,18 +78,16 @@
       el.hidden = !visible; // estilos.css ya tiene .vista[hidden] { display: none !important }
     }
     vistaActual = nombre;
+    indice = CONFIG.secuencia.indexOf(nombre); // la rotación sigue desde aquí
 
-    if (nombre === 'video') {
-      arrancarVideo();
-    } else {
-      temporizador = setTimeout(siguiente, CONFIG.duracion[nombre] ?? CONFIG.duracionPorDefecto);
-    }
+    if (nombre === 'video') arrancarVideo();
+    else programarFin(nombre);
   }
 
   // ---------- Vídeo ----------
   function arrancarVideo() {
     // Sin vídeo, o el archivo ya falló al cargar (p. ej. falta video.mp4): saltar ya
-    if (!video || video.error || video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
+    if (videoRoto()) {
       console.warn('Vídeo no disponible; paso a la siguiente vista.');
       setTimeout(siguiente, 0);
       return;
@@ -78,11 +98,11 @@
         iniciarVideo(); // T08
       } else {
         video.currentTime = 0;
-        video.play().catch(() => { if (vistaActual === 'video') siguiente(); });
+        video.play().catch(() => { if (vistaActual === 'video') saltarVideo(); });
       }
     } catch (e) {
       console.error('Error al iniciar el vídeo:', e);
-      setTimeout(siguiente, 0);
+      saltarVideo();
       return;
     }
 
@@ -96,6 +116,14 @@
         guardia = setTimeout(() => { if (vistaActual === 'video') siguiente(); }, CONFIG.videoMaximo);
       }
     }, CONFIG.videoArranque);
+  }
+
+  // El vídeo no arranca: se pasa a la siguiente vista. Si está fijado, se reintenta con
+  // calma (si no, siguiente() lo volvería a mostrar al instante y se quedaría en bucle).
+  function saltarVideo() {
+    clearTimeout(guardia);
+    guardia = setTimeout(() => { if (vistaActual === 'video') siguiente(); },
+                         fijada === 'video' ? CONFIG.videoArranque : 0);
   }
 
   function detenerVideo() {
@@ -140,6 +168,45 @@
     setTimeout(cicloDatos, CONFIG.refresco);
   }
 
+  // ---------- Órdenes del panel (/admin → /api/pantalla) ----------
+  function aplicarOrdenes(d) {
+    const vistaValida = v => CONFIG.secuencia.includes(v) ? v : null;
+    const nuevaFijada = vistaValida(d.fijada);
+    const salto = Number(d.salto_id) || 0;
+
+    // La primera respuesta solo marca el punto de partida: recargar /pantalla no repite un salto antiguo
+    const saltoNuevo = ultimoSalto !== undefined && salto !== ultimoSalto;
+    ultimoSalto = salto;
+
+    if (saltoNuevo && vistaValida(d.salto_vista)) {
+      fijada = nuevaFijada;
+      mostrarVista(d.salto_vista);
+      return;
+    }
+    if (nuevaFijada === fijada) return;
+    fijada = nuevaFijada;
+    if (fijada && fijada !== vistaActual) mostrarVista(fijada);
+    else if (vistaActual && vistaActual !== 'video') programarFin(vistaActual); // fija o suelta la vista actual
+  }
+
+  async function cicloControl() {
+    const url = document.body.dataset.apiControl;
+    if (!url) return; // sin URL no hay control remoto: solo rotación automática
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), CONFIG.tiempoMaxPeticion);
+    try {
+      const res = await fetch(url, { cache: 'no-store', signal: ctrl.signal });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      aplicarOrdenes(await res.json());
+    } catch (e) {
+      // Sin respuesta: se sigue con lo que hubiera (rotación o vista fijada)
+      console.warn('No se pudieron leer las órdenes del panel:', e.message);
+    } finally {
+      clearTimeout(t);
+      setTimeout(cicloControl, CONFIG.control);
+    }
+  }
+
   // ---------- Pantalla completa ----------
   // El botón se crea desde aquí para no tocar el esqueleto común de pantalla.html.
   function crearBotonPantallaCompleta() {
@@ -167,4 +234,5 @@
   crearBotonPantallaCompleta();
   siguiente();   // muestra la primera vista
   cicloDatos();  // primera carga de datos inmediata, luego cada 10 s
+  cicloControl(); // órdenes del panel: al arrancar y luego cada 3 s
 })();

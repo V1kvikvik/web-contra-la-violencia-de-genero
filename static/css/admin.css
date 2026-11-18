@@ -494,6 +494,28 @@ body.admin [hidden] { display: none !important; }
 }
 .adm-btn-barra:hover { background: rgba(255, 255, 255, .16); }
 
+/* Control de la pantalla (saltar / fijar una vista) */
+.adm-panel-cab h2 .adm-estado { margin-left: 6px; vertical-align: middle; }
+.adm-control {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+.adm-control-vista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--adm-borde);
+  border-radius: 8px;
+}
+.adm-control-fijada { border-color: var(--morado-25n); box-shadow: inset 0 0 0 1px var(--morado-25n); }
+.adm-control-botones { display: flex; gap: 8px; }
+.adm-control-botones form { margin: 0; flex: 1 1 0; }
+.adm-control .adm-btn[aria-pressed="true"]:disabled { opacity: 1; cursor: default; }
+.adm-control-soltar { grid-column: 1 / -1; margin: 0; }
+
 /* Diálogo de confirmación */
 .adm-dialogo {
   width: min(440px, calc(100vw - 32px));

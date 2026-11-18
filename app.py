@@ -114,9 +114,15 @@ _AVISOS_PANEL = {
     ("filtro", "invalido"): "No se ha añadido: usa solo letras y espacios (de 2 a 60), con * al final si quieres.",
     ("filtro", "repetido"): "Ese término ya estaba en el filtro.",
     ("ajustes", "guardados"): "Ajustes guardados.{retirados}",
+    ("pantalla", "saltar"): "La pantalla salta a «{vista}» y después sigue la rotación.",
+    ("pantalla", "fijar"): "La pantalla se queda en «{vista}» hasta que vuelvas a la rotación automática.",
+    ("pantalla", "soltar"): "La pantalla vuelve a la rotación automática.",
 }
+# Nombre de cada vista de /pantalla en el panel. En ?hecho=pantalla.<accion>.<n> va su posición.
+_NOMBRES_VISTAS = {"mural": "Mural", "video": "Vídeo", "foro": "Foro"}
 _AVISOS_ERROR = {("filtro", "invalido"), ("filtro", "repetido")}
-_ANCLA_PANEL = {"mural": "revision", "foro": "revision", "filtro": "filtro", "ajustes": "filtro"}
+_ANCLA_PANEL = {"mural": "revision", "foro": "revision", "filtro": "filtro", "ajustes": "filtro",
+                "pantalla": "control-pantalla"}
 _HECHO = re.compile(r"^([a-z]+)\.([a-z]+)\.(\d{1,12})$")
 
 
@@ -148,8 +154,13 @@ def _ultima_accion():
         termino = db.termino_filtro(id_)
         if termino is None:
             return None
+    vista = ""
+    if objeto == "pantalla":
+        if id_ >= len(db.VISTAS_PANTALLA):
+            return None
+        vista = _NOMBRES_VISTAS[db.VISTAS_PANTALLA[id_]]
     return {
-        "texto": plantilla.format(id=id_, termino=termino, retirados=retirados),
+        "texto": plantilla.format(id=id_, termino=termino, retirados=retirados, vista=vista),
         "tipo": "error" if (objeto, accion) in _AVISOS_ERROR else "ok",
         "resaltar": "%s-%d" % (objeto, id_) if objeto in db.TABLAS and accion != "borrar" else None,
     }
@@ -289,6 +300,14 @@ def create_app():
             [{"id": r["id"], "titulo": r["titulo"], "texto": r["texto"]} for r in reflexiones]
         )
 
+    @app.get("/api/pantalla")
+    @requiere_rol("admin", "pantalla")
+    def api_pantalla():
+        """Órdenes del panel: vista fijada y último salto pedido (lo consulta pantalla.js)."""
+        resp = jsonify(db.estado_pantalla())
+        resp.headers["Cache-Control"] = "no-store"
+        return resp
+
     # --- T03: panel de moderación (solo rol admin) --------------------------
 
     app.add_template_filter(_fecha, "fecha")
@@ -310,6 +329,8 @@ def create_app():
             elementos=db.listar_para_panel(),
             terminos=db.listar_filtros(),
             ajustes=db.leer_ajustes(),
+            control=db.estado_pantalla(),
+            vistas=_NOMBRES_VISTAS,
             csrf=_token_csrf(),
             aviso=aviso,
             resaltar=aviso["resaltar"] if aviso else None,
@@ -359,6 +380,20 @@ def create_app():
             nuevos["avisos_para_ocultar"] = str(int(umbral))
         db.guardar_ajustes(nuevos)
         return _volver_al_panel("ajustes", "guardados", 0, db.revisar_publicados())
+
+    @app.post("/admin/pantalla")
+    @requiere_rol("admin")
+    def admin_pantalla():
+        """Saltar a una vista de /pantalla, fijarla o volver a la rotación automática."""
+        _comprobar_csrf()
+        accion = request.form.get("accion", "")
+        vista = request.form.get("vista", "")
+        try:
+            db.ordenar_pantalla(accion, vista)
+        except ValueError:
+            abort(400)
+        posicion = db.VISTAS_PANTALLA.index(vista) if vista in db.VISTAS_PANTALLA else 0
+        return _volver_al_panel("pantalla", accion, posicion)
 
     # --- T03: avisos del público (sin contraseña) ---------------------------
     # Quien vea en la pantalla algo inapropiado lo busca en /avisar y lo marca: aparece en

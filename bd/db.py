@@ -64,7 +64,12 @@ AJUSTES_POR_DEFECTO = {
     # podría vaciar la pantalla.
     "retirar_por_avisos": "0",
     "avisos_para_ocultar": "2",  # N, si se activa retirar_por_avisos
+    # Control de /pantalla desde el panel (ver ordenar_pantalla()).
+    "pantalla_fijada": "",       # '' = rotación automática; o 'mural' | 'video' | 'foro'
+    "pantalla_salto_vista": "",  # última vista a la que se pidió saltar
+    "pantalla_salto_id": "0",    # sube en cada salto: así la pantalla sabe que es una orden nueva
 }
+VISTAS_PANTALLA = ("mural", "video", "foro")
 MOTIVOS_AVISO = {
     "odio": "Odio o discriminación",
     "acoso": "Insultos, acoso o amenazas",
@@ -282,6 +287,44 @@ def guardar_ajustes(nuevos):
                 if clave in AJUSTES_POR_DEFECTO:
                     con.execute("INSERT INTO ajustes (clave, valor) VALUES (?, ?) "
                                 "ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor", (clave, str(valor)))
+    finally:
+        con.close()
+
+
+def estado_pantalla():
+    """Órdenes del panel para /pantalla: {fijada, salto_vista, salto_id}."""
+    ajustes = leer_ajustes()
+    fijada = ajustes["pantalla_fijada"]
+    salto_vista = ajustes["pantalla_salto_vista"]
+    salto_id = ajustes["pantalla_salto_id"]
+    return {
+        "fijada": fijada if fijada in VISTAS_PANTALLA else None,
+        "salto_vista": salto_vista if salto_vista in VISTAS_PANTALLA else None,
+        "salto_id": int(salto_id) if salto_id.isdigit() else 0,
+    }
+
+
+def ordenar_pantalla(accion, vista=None):
+    """Órdenes del panel a /pantalla.
+
+    - "saltar": salta una vez a `vista` y sigue la rotación desde ahí (quita lo fijado).
+    - "fijar":  se queda en `vista` hasta que se suelte.
+    - "soltar": vuelve a la rotación automática.
+    """
+    if accion not in ("saltar", "fijar", "soltar"):
+        raise ValueError("Acción no permitida")
+    if accion != "soltar" and vista not in VISTAS_PANTALLA:
+        raise ValueError("Vista no permitida")
+    sql = ("INSERT INTO ajustes (clave, valor) VALUES (?, ?) "
+           "ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor")
+    con = get_conexion()
+    try:
+        with con:
+            con.execute(sql, ("pantalla_fijada", vista if accion == "fijar" else ""))
+            if accion == "saltar":
+                con.execute(sql, ("pantalla_salto_vista", vista))
+                con.execute("INSERT INTO ajustes (clave, valor) VALUES ('pantalla_salto_id', '1') "
+                            "ON CONFLICT(clave) DO UPDATE SET valor = CAST(valor AS INTEGER) + 1")
     finally:
         con.close()
 

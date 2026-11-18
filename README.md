@@ -98,12 +98,14 @@ Nombres de las rutas (el nombre de la función en `app.py` = endpoint de `url_fo
 | `pantalla` | `/pantalla` | GET | T02 |
 | `api_mural` | `/api/mural` | GET | T02 |
 | `api_foro` | `/api/foro` | GET | T02 |
+| `api_pantalla` | `/api/pantalla` (órdenes del panel para la pantalla) | GET | Control de pantalla |
 | `admin` | `/admin` | GET | T03 |
 | `admin_accion` | `/admin/<tabla>/<int:id>/<accion>` | POST | T03 |
 | `admin_estado` | `/admin/estado` (contadores en JSON) | GET | T03 |
 | `admin_filtro_anadir` | `/admin/filtros` | POST | T03 |
 | `admin_filtro_quitar` | `/admin/filtros/<int:id>/borrar` | POST | T03 |
 | `admin_ajustes` | `/admin/ajustes` | POST | T03 |
+| `admin_pantalla` | `/admin/pantalla` (saltar / fijar / soltar una vista) | POST | Control de pantalla |
 | `avisar` | `/avisar` (público) | GET | T03 |
 | `avisar_elemento` | `/avisar/<tabla>/<int:id>` (público) | GET, POST | T03 |
 
@@ -127,6 +129,20 @@ con las contraseñas `ADMIN_PASS` y `PANTALLA_PASS`.
   apagado: la cookie anónima que evita contar dos veces el mismo móvil se puede saltar.
 - Los formularios del panel llevan un token CSRF derivado de `ADMIN_PASS`.
 - Una base de datos creada antes de T03 se actualiza sola al arrancar (`init_db()` añade lo que falte).
+
+## Control de la pantalla desde el panel
+
+En `/admin`, sección **Pantalla**, se puede mandar a `/pantalla` a una vista concreta:
+
+- **Saltar ahora** (mural, vídeo o foro): cambia una vez y sigue la rotación normal desde ahí.
+- **Fijar**: la pantalla se queda en esa vista (el vídeo se repite) hasta pulsar
+  **Volver a la rotación automática**.
+
+`pantalla.js` pregunta cada 3 s a `/api/pantalla` (`{fijada, salto_vista, salto_id}`), así que la
+pantalla obedece en unos segundos. Las órdenes se guardan en la tabla `ajustes`
+(`pantalla_fijada`, `pantalla_salto_vista`, `pantalla_salto_id`): si se recarga `/pantalla`
+respeta la vista fijada, pero no repite un salto antiguo. Si el vídeo está fijado y no se puede
+reproducir, la pantalla rota con normalidad para no quedarse en negro.
 
 ## Normas del equipo
 
