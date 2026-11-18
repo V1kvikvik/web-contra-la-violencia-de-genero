@@ -77,3 +77,70 @@ systemctl status 25n-web
 ```
 
 Si cae la app, la pantalla sigue mostrando los últimos datos (T04). El servicio se reinicia solo si gunicorn falla.
+
+## 6. Reiniciar la base de datos al completo
+
+Deja la app como recién instalada. **Se pierde todo lo guardado en la BD:**
+
+| Se borra | Vuelve a… |
+|---|---|
+| Mensajes del mural, reflexiones del foro y avisos del público | vacío |
+| Palabras del filtro (incluidas las añadidas desde el panel) | la lista de `bd/filtros_iniciales.txt` |
+| Ajustes del panel (aprobación manual del foro, reglas de privacidad, retirada por avisos) | los valores por defecto (`AJUSTES_POR_DEFECTO` en `bd/db.py`) |
+
+**No** se tocan `.env` (usuarios y contraseñas), el vídeo, el QR ni el código.
+
+La BD es un único fichero SQLite: `datos/25n.db`, o la ruta de `DB_PATH` si está puesta en `.env`.
+Como usa el modo WAL, junto a él pueden existir `25n.db-wal` y `25n.db-shm`: **hay que borrar los
+tres**, o SQLite podría recuperar datos del `-wal`. Al volver a arrancar, `init_db()` crea las tablas,
+carga el filtro inicial y los ajustes por defecto.
+
+### En el servidor
+
+Hay que **parar el servicio antes**: si gunicorn sigue con el fichero abierto, seguiría escribiendo
+en la BD borrada.
+
+```bash
+cd <carpeta>
+sudo systemctl stop 25n-web
+
+set -a; . ./.env; set +a
+BD="${DB_PATH:-datos/25n.db}"
+echo "Se va a reiniciar: $BD"
+
+# 1. Copia de seguridad (recomendado: si algo sale mal, se puede volver atrás)
+mkdir -p datos/copias
+COPIA="datos/copias/25n-$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$COPIA"
+cp -p "$BD"* "$COPIA"/ 2>/dev/null; ls -l "$COPIA"
+
+# 2. Borrar la BD (los tres ficheros)
+rm -f "$BD" "$BD-wal" "$BD-shm"
+
+# 3. Crearla de nuevo y arrancar
+.venv/bin/python -m bd.db
+sudo systemctl start 25n-web
+bash deploy/comprobar.sh https://thedevhub.santiagof.dev/colaboraciones/2026-2027/web-contra-la-violencia-de-genero
+```
+
+Para **volver a la copia**: `sudo systemctl stop 25n-web`, `rm -f "$BD" "$BD-wal" "$BD-shm"`,
+copiar de vuelta los ficheros de `datos/copias/<fecha>/` a su sitio y `sudo systemctl start 25n-web`.
+
+> `datos/` no se sube a git (`.gitignore`), así que las copias tampoco. Borra las copias viejas
+> cuando ya no hagan falta: contienen los mensajes del público.
+
+### En local (desarrollo)
+
+Para el servidor de Flask (Ctrl+C) y:
+
+```bash
+rm -f datos/25n.db datos/25n.db-wal datos/25n.db-shm   # o la ruta de DB_PATH
+python -m bd.db
+flask --app app run --debug
+```
+
+### Cuándo hacerlo
+
+- **Después de las pruebas y antes del evento**, para que la pantalla empiece vacía (después revisa en
+  `/admin` que el filtro y los ajustes son los que quiere el equipo).
+- **No** hace falta para aplicar cambios del esquema: `init_db()` añade al arrancar lo que falte sin borrar nada.
