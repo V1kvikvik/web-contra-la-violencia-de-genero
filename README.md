@@ -74,6 +74,9 @@ En producción la app corre con gunicorn detrás de NGINX en
 **https://thedevhub.santiagof.dev/colaboraciones/2026-2027/web-contra-la-violencia-de-genero/**.
 Ver [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
 
+Para **reiniciar la base de datos al completo** (dejarla vacía, con el filtro y los ajustes por defecto)
+ver [`docs/DESPLIEGUE.md` § 6](docs/DESPLIEGUE.md#6-reiniciar-la-base-de-datos-al-completo).
+
 ## URLs: la app vive en un subdirectorio
 
 En producción todas las rutas llevan delante `/colaboraciones/2026-2027/web-contra-la-violencia-de-genero`.
