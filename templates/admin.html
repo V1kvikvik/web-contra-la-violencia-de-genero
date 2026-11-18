@@ -177,6 +177,44 @@
       </section>
     </div>
 
+    {# ---------- Control de la pantalla: saltar a una vista o fijarla ---------- #}
+    <section id="control-pantalla" class="adm-panel" aria-labelledby="t-control">
+      <header class="adm-panel-cab">
+        <div>
+          <h2 id="t-control">Pantalla
+            {%- if control.fijada %} <span class="adm-estado adm-estado-retenido">Fijada en {{ vistas[control.fijada] }}</span>
+            {%- else %} <span class="adm-estado adm-estado-visible">Rotación automática</span>{% endif %}</h2>
+          <p>«Saltar» cambia la vista una vez y sigue rotando desde ahí. «Fijar» la deja quieta hasta que vuelvas a la rotación. La pantalla obedece en unos segundos.</p>
+        </div>
+      </header>
+      <div class="adm-control">
+        {% for clave, nombre in vistas.items() %}
+          <div class="adm-control-vista{{ ' adm-control-fijada' if control.fijada == clave }}">
+            <strong>{{ nombre }}</strong>
+            <div class="adm-control-botones">
+              {% for accion, texto in [('saltar', 'Saltar ahora'), ('fijar', 'Fijar')] %}
+                <form method="post" action="{{ url_for('admin_pantalla') }}">
+                  <input type="hidden" name="csrf" value="{{ csrf }}">
+                  <input type="hidden" name="accion" value="{{ accion }}">
+                  <input type="hidden" name="vista" value="{{ clave }}">
+                  <button type="submit" class="adm-btn{{ ' adm-btn-principal' if accion == 'fijar' and control.fijada == clave }}"
+                          aria-label="{{ texto }}: {{ nombre }}"
+                          {%- if accion == 'fijar' and control.fijada == clave %} aria-pressed="true" disabled{% endif %}>{{ 'Fijada' if accion == 'fijar' and control.fijada == clave else texto }}</button>
+                </form>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+        {% if control.fijada %}
+          <form method="post" action="{{ url_for('admin_pantalla') }}" class="adm-control-soltar">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="accion" value="soltar">
+            <button type="submit" class="adm-btn adm-btn-principal">{{ icono('actualizar') }}<span>Volver a la rotación automática</span></button>
+          </form>
+        {% endif %}
+      </div>
+    </section>
+
     {# ---------- 3. Todo lo publicado y lo retirado ---------- #}
     <section id="publicado" class="adm-panel" aria-labelledby="t-publicado">
       <header class="adm-panel-cab">
