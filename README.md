@@ -123,7 +123,7 @@ con las contraseñas `ADMIN_PASS` y `PANTALLA_PASS`.
 - **Filtro automático** (`bd/filtro.py`): los mensajes del mural se publican solos salvo los que
   contienen una palabra de la lista o datos personales (enlaces, correos, teléfonos, @usuarios).
   Esos quedan pendientes en `/admin` para publicarlos igualmente o borrarlos. El filtro entiende
-  tildes, plurales, mayúsculas y trucos (`z0rra`, `p.u.t.a`); con `*` al final cubre todo lo que
+  tildes, plurales, mayúsculas y trucos (`z0rra`, `p.u.t.a`, `p4ta`: un número o símbolo en lugar de una vocal vale por cualquier vocal); con `*` al final cubre todo lo que
   empiece igual. La lista y las reglas se cambian desde el panel; la primera vez se carga
   `bd/filtros_iniciales.txt`. El filtro **no** detecta nombres ni lugares.
 - **Avisos del público** (`/avisar`, enlazado desde `/participa` y `/gracias`): quien vea algo
