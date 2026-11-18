@@ -1,8 +1,9 @@
 # Web contra la violencia de género · 25N
 
 Aplicación Flask para el 25N: el público deja mensajes desde el móvil (QR → `/participa`),
-una persona moderadora los revisa en `/admin` y una pantalla proyectada (`/pantalla`)
-va rotando entre el mural de burbujas, el vídeo y las reflexiones del foro.
+una persona moderadora los revisa en `/admin` (con ayuda de un filtro automático) y una
+pantalla proyectada (`/pantalla`) va rotando entre el mural de burbujas, el vídeo y las
+reflexiones del foro.
 
 Las tareas están en [`docs/tareas/`](docs/tareas/).
 
@@ -17,7 +18,9 @@ Cada archivo ya existe con un comentario que indica qué tarea lo rellena.
 ├── wsgi.py                 T05 · entrada de producción (gunicorn)
 ├── bd/
 │   ├── db.py               Acceso a la base de datos (todas las consultas)
-│   └── schema.sql          Tablas mural y foro
+│   ├── schema.sql          Tablas mural y foro (+ filtros y ajustes de T03)
+│   ├── filtro.py           T03 · filtro automático de palabras y datos personales
+│   └── filtros_iniciales.txt  T03 · lista de palabras con la que arranca el filtro
 ├── templates/              Plantillas Jinja (HTML)
 │   ├── participa.html      T06 · formulario público
 │   ├── gracias.html        T06 · confirmación
@@ -32,6 +35,7 @@ Cada archivo ya existe con un comentario que indica qué tarea lo rellena.
 │   │   └── admin.css       T03 · estilos del panel
 │   ├── js/
 │   │   ├── participa.js    T06 · contador de caracteres del formulario
+│   │   ├── admin.js        T03 · filtros, búsqueda, novedades y confirmación del panel
 │   │   ├── pantalla.js     T04 · rotación de vistas y actualización
 │   │   ├── mural.js        T07 · pintarMural(mensajes)
 │   │   ├── video.js        T08 · iniciarVideo() / pararVideo()
@@ -91,9 +95,27 @@ Nombres de las rutas (el nombre de la función en `app.py` = endpoint de `url_fo
 | `api_foro` | `/api/foro` | GET | T02 |
 | `admin` | `/admin` | GET | T03 |
 | `admin_accion` | `/admin/<tabla>/<int:id>/<accion>` | POST | T03 |
+| `admin_estado` | `/admin/estado` (contadores en JSON) | GET | T03 |
+| `admin_filtro_anadir` | `/admin/filtros` | POST | T03 |
+| `admin_filtro_quitar` | `/admin/filtros/<int:id>/borrar` | POST | T03 |
+| `admin_ajustes` | `/admin/ajustes` | POST | T03 |
 
 Usuarios de HTTP Basic Auth: `admin` y `pantalla` (variables `ADMIN_USER`/`PANTALLA_USER` en `.env`),
 con las contraseñas `ADMIN_PASS` y `PANTALLA_PASS`.
+
+## Moderación (T03)
+
+- **Foro:** por defecto las reflexiones **no salen hasta que moderación las aprueba** en `/admin`
+  («Pendientes de revisar»), porque pueden contar casos reales con nombres o lugares.
+  Relajarlo (que se publiquen solas si pasan el filtro) es una decisión del equipo desde el panel.
+- **Filtro automático** (`bd/filtro.py`): los mensajes del mural se publican solos salvo los que
+  contienen una palabra de la lista o datos personales (enlaces, correos, teléfonos, @usuarios).
+  Esos quedan pendientes en `/admin` para publicarlos igualmente o borrarlos. El filtro entiende
+  tildes, plurales, mayúsculas y trucos (`z0rra`, `p.u.t.a`); con `*` al final cubre todo lo que
+  empiece igual. La lista y las reglas se cambian desde el panel; la primera vez se carga
+  `bd/filtros_iniciales.txt`. El filtro **no** detecta nombres ni lugares.
+- Los formularios del panel llevan un token CSRF derivado de `ADMIN_PASS`.
+- Una base de datos creada antes de T03 se actualiza sola al arrancar (`init_db()` añade lo que falte).
 
 ## Normas del equipo
 

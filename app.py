@@ -3,16 +3,20 @@
 Responsables:
 - T01: creación de la app, init de la BD, POST /mural, POST /foro, /participa, /gracias
 - T02: decorador de HTTP Basic Auth, GET /api/mural, GET /api/foro, GET /pantalla
-- T03: GET /admin y POST /admin/<tabla>/<id>/<accion>
+- T03: GET /admin y POST /admin/<tabla>/<id>/<accion>, más el filtro automático
+       (/admin/filtros, /admin/ajustes)
 
 Toda la base de datos se usa a través de `bd.db` (no escribir SQL aquí).
 """
 
+import hashlib
 import hmac
 import os
+import re
+from datetime import datetime, timezone
 from functools import wraps
 
-from flask import Flask, Response, jsonify, redirect, render_template, request, url_for
+from flask import Flask, Response, abort, jsonify, redirect, render_template, request, url_for
 
 from bd import db
 
@@ -67,6 +71,111 @@ def requiere_rol(*roles):
         return envoltura
 
     return decorador
+
+
+# --- T03: moderación ----------------------------------------------------------
+# Los mensajes del mural se publican solos salvo lo que retiene el filtro automático
+# (bd/filtro.py); las reflexiones del foro esperan aprobación (ajuste foro_manual).
+# El panel muestra lo pendiente, gestiona la lista de palabras y las reglas, y puede
+# retirar o borrar cualquier cosa.
+
+def _token_csrf():
+    """Token que llevan todos los formularios del panel.
+
+    El navegador reenvía solo la autenticación Basic, así que otra web podría enviar
+    formularios a /admin en nombre de la moderadora. Este token sale de la contraseña
+    de admin (otra web no puede leerlo), así que esos envíos se rechazan.
+    """
+    usuario = os.environ.get("ADMIN_USER") or "admin"
+    clave = os.environ.get("ADMIN_PASS", "")
+    return hmac.new(clave.encode("utf-8"), ("csrf-25n:" + usuario).encode("utf-8"),
+                    hashlib.sha256).hexdigest()
+
+
+def _comprobar_csrf():
+    if not hmac.compare_digest(request.form.get("csrf", ""), _token_csrf()):
+        abort(403)
+
+
+# Aviso que se muestra en el panel tras cada acción (?hecho=objeto.accion.id&n=retirados).
+# Son textos fijos: de la dirección solo se toman números.
+_AVISOS_PANEL = {
+    ("mural", "mostrar"): "Mensaje #{id} publicado. Se verá en la pantalla en la próxima actualización.",
+    ("mural", "ocultar"): "Mensaje #{id} retirado de la pantalla.",
+    ("mural", "borrar"): "Mensaje #{id} borrado.",
+    ("foro", "aprobar"): "Reflexión #{id} publicada. Se verá en la pantalla en la próxima actualización.",
+    ("foro", "retirar"): "Reflexión #{id} retirada de la pantalla.",
+    ("foro", "borrar"): "Reflexión #{id} borrada.",
+    ("filtro", "anadido"): "Añadido al filtro: «{termino}».{retirados}",
+    ("filtro", "quitado"): "Término quitado del filtro.",
+    ("filtro", "invalido"): "No se ha añadido: usa solo letras y espacios (de 2 a 60), con * al final si quieres.",
+    ("filtro", "repetido"): "Ese término ya estaba en el filtro.",
+    ("ajustes", "guardados"): "Ajustes guardados.{retirados}",
+}
+_AVISOS_ERROR = {("filtro", "invalido"), ("filtro", "repetido")}
+_ANCLA_PANEL = {"mural": "revision", "foro": "revision", "filtro": "filtro", "ajustes": "filtro"}
+_HECHO = re.compile(r"^([a-z]+)\.([a-z]+)\.(\d{1,12})$")
+
+
+def _volver_al_panel(objeto, accion, id_=0, retirados=0):
+    parametros = {"hecho": "%s.%s.%d" % (objeto, accion, id_)}
+    if retirados:
+        parametros["n"] = int(retirados)
+    return redirect(url_for("admin", **parametros) + "#" + _ANCLA_PANEL[objeto], code=303)
+
+
+def _ultima_accion():
+    """Lee ?hecho=… y devuelve {texto, tipo, resaltar} para la plantilla, o None."""
+    hecho = _HECHO.match(request.args.get("hecho", ""))
+    if not hecho:
+        return None
+    objeto, accion, id_ = hecho.group(1), hecho.group(2), int(hecho.group(3))
+    plantilla = _AVISOS_PANEL.get((objeto, accion))
+    if plantilla is None:
+        return None
+    n = request.args.get("n", "")
+    n = int(n) if n.isdigit() and len(n) < 7 else 0
+    retirados = ""
+    if n == 1:
+        retirados = " Se ha retirado 1 publicación que ya estaba en pantalla."
+    elif n > 1:
+        retirados = " Se han retirado %d publicaciones que ya estaban en pantalla." % n
+    termino = ""
+    if (objeto, accion) == ("filtro", "anadido"):
+        termino = db.termino_filtro(id_)
+        if termino is None:
+            return None
+    return {
+        "texto": plantilla.format(id=id_, termino=termino, retirados=retirados),
+        "tipo": "error" if (objeto, accion) in _AVISOS_ERROR else "ok",
+        "resaltar": "%s-%d" % (objeto, id_) if objeto in db.TABLAS and accion != "borrar" else None,
+    }
+
+
+def _zona_horaria():
+    try:
+        from zoneinfo import ZoneInfo
+        return ZoneInfo(os.environ.get("ZONA_HORARIA") or "Europe/Madrid")
+    except Exception:  # p. ej. Windows sin el paquete tzdata: hora local del equipo
+        return None
+
+
+def _fecha(valor):
+    """Filtro de plantilla: "hoy, 10:42" o "17/11/2026 18:05" en hora de España.
+    SQLite guarda `creado` en UTC."""
+    if not valor:
+        return ""
+    try:
+        momento = datetime.fromisoformat(str(valor))
+    except ValueError:
+        return str(valor)
+    if momento.tzinfo is None:
+        momento = momento.replace(tzinfo=timezone.utc)
+    zona = _zona_horaria()
+    local = momento.astimezone(zona)
+    if local.date() == datetime.now(timezone.utc).astimezone(zona).date():
+        return "hoy, " + local.strftime("%H:%M")
+    return local.strftime("%d/%m/%Y %H:%M")
 
 
 def create_app():
@@ -156,6 +265,73 @@ def create_app():
         return jsonify(
             [{"id": r["id"], "titulo": r["titulo"], "texto": r["texto"]} for r in reflexiones]
         )
+
+    # --- T03: panel de moderación (solo rol admin) --------------------------
+
+    app.add_template_filter(_fecha, "fecha")
+
+    @app.after_request
+    def cabeceras_admin(resp):
+        if (request.endpoint or "").startswith("admin"):
+            resp.headers["Cache-Control"] = "no-store"
+            resp.headers["X-Frame-Options"] = "DENY"
+            resp.headers["Referrer-Policy"] = "same-origin"
+        return resp
+
+    @app.get("/admin")
+    @requiere_rol("admin")
+    def admin():
+        aviso = _ultima_accion()
+        return render_template(
+            "admin.html",
+            elementos=db.listar_para_panel(),
+            terminos=db.listar_filtros(),
+            ajustes=db.leer_ajustes(),
+            csrf=_token_csrf(),
+            aviso=aviso,
+            resaltar=aviso["resaltar"] if aviso else None,
+        )
+
+    @app.get("/admin/estado")
+    @requiere_rol("admin")
+    def admin_estado():
+        """Contadores en JSON: el panel avisa si llegan elementos pendientes nuevos."""
+        return jsonify(db.contadores())
+
+    @app.post("/admin/<tabla>/<int:id>/<accion>")
+    @requiere_rol("admin")
+    def admin_accion(tabla, id, accion):
+        _comprobar_csrf()
+        try:
+            db.aplicar_accion(tabla, id, accion)
+        except ValueError:
+            abort(404)
+        return _volver_al_panel(tabla, accion, id)
+
+    @app.post("/admin/filtros")
+    @requiere_rol("admin")
+    def admin_filtro_anadir():
+        _comprobar_csrf()
+        id_, error = db.anadir_filtro(request.form.get("termino", ""))
+        if error:
+            return _volver_al_panel("filtro", error)
+        return _volver_al_panel("filtro", "anadido", id_, db.revisar_publicados())
+
+    @app.post("/admin/filtros/<int:id>/borrar")
+    @requiere_rol("admin")
+    def admin_filtro_quitar(id):
+        _comprobar_csrf()
+        db.quitar_filtro(id)
+        return _volver_al_panel("filtro", "quitado")
+
+    @app.post("/admin/ajustes")
+    @requiere_rol("admin")
+    def admin_ajustes():
+        _comprobar_csrf()
+        nuevos = {regla: "1" if request.form.get(regla) == "1" else "0"
+                  for regla in ("enlaces", "correos", "telefonos", "usuarios", "foro_manual")}
+        db.guardar_ajustes(nuevos)
+        return _volver_al_panel("ajustes", "guardados", 0, db.revisar_publicados())
 
     return app
 

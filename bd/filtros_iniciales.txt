@@ -1,0 +1,53 @@
+# T03 — Lista inicial del filtro. Se carga UNA vez, la primera vez que arranca el servidor.
+# Después se gestiona desde el panel (/admin, «Filtro automático»); cambiar este archivo ya no tiene efecto.
+#
+# Una línea por término. Sin tildes ni mayúsculas (da igual cómo lo escriban).
+#   palabra     la palabra entera, con plural y escrita con trucos (p.u.t.a, z0rra, zorraaa)
+#   palabra*    cualquier palabra que empiece así
+#   dos palabras  expresión completa
+#
+# Ojo: palabras como "violencia", "violación", "matar" o "maltrato" aparecen en mensajes
+# legítimos del 25N. No las pongas solas; usa expresiones concretas ("te voy a matar").
+
+# Insultos machistas
+puta
+puto
+zorra
+guarra
+perra
+golfa
+furcia
+ramera
+feminazi*
+hembrista
+
+# Homofobia y tránsfobia
+maric*
+bollera
+tortillera
+travelo
+
+# Racismo y otros insultos
+sudaca
+negrat*
+de mierda
+subnormal
+retrasad*
+gilipollas
+imbecil
+cabron
+cabrona
+
+# Culpar a la víctima y machismo
+se lo merecia
+se lo busco
+algo habra hecho
+algo habria hecho
+a fregar
+a la cocina
+
+# Amenazas
+te voy a matar
+te voy a violar
+te mato
+os mato
