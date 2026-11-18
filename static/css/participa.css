@@ -33,6 +33,28 @@ body {
 
 .contenido { max-width: 560px; margin: 0 auto; padding: 16px; }
 
+/* --- Selector de idioma (i18n, templates/_idioma.html) -------------------- */
+.selector-idioma {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin: -8px -4px 12px;
+  font-size: .9rem;
+}
+.selector-idioma a,
+.selector-idioma-actual {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: inherit;
+}
+.selector-idioma a { text-decoration: underline; text-underline-offset: 3px; }
+.selector-idioma-actual { font-weight: 700; background: rgba(255, 255, 255, .16); }
+.tarjeta .selector-idioma { margin: -12px -12px 4px; color: var(--morado-osc); }
+.tarjeta .selector-idioma-actual { background: var(--morado-claro); }
+
 /* --- Aviso de privacidad ------------------------------------------------- */
 .aviso {
   background: #fff;

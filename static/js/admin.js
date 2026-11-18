@@ -12,6 +12,7 @@
  *
  * La URL de /admin/estado llega en <body data-api-estado="…"> (nunca rutas escritas a mano).
  * Texto de usuario siempre con textContent.
+ * Los textos de la interfaz llegan traducidos en <body data-textos="…"> (i18n).
  */
 (function () {
   'use strict';
@@ -20,13 +21,23 @@
     return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   };
   var ahora = function () {
-    return new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    return new Date().toLocaleTimeString(document.documentElement.lang || 'es', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Textos traducidos: los pone la plantilla en <body data-textos="{…}"> (i18n).
+  // Si faltan, se usa el español escrito aquí.
+  var TEXTOS = (function () {
+    try { return JSON.parse(document.body.dataset.textos || '{}'); } catch (e) { return {}; }
+  })();
+  var t = function (clave, porDefecto, datos) {
+    var texto = TEXTOS[clave] || porDefecto;
+    return texto.replace(/\{(\w+)\}/g, function (m, k) { return datos && k in datos ? datos[k] : m; });
   };
 
   // ---------- Hora de la última carga ----------
   var hora = document.getElementById('adm-hora');
   if (hora) {
-    hora.textContent = 'Actualizado a las ' + ahora();
+    hora.textContent = t('actualizado', 'Actualizado a las {hora}', { hora: ahora() });
     hora.hidden = false;
   }
 
@@ -45,7 +56,7 @@
     var x = document.createElement('button');
     x.type = 'button';
     x.className = 'adm-aviso-cerrar';
-    x.setAttribute('aria-label', 'Cerrar aviso');
+    x.setAttribute('aria-label', t('cerrar_aviso', 'Cerrar aviso'));
     x.textContent = '×';
     x.addEventListener('click', cerrarAviso);
     aviso.appendChild(x);
@@ -66,16 +77,18 @@
         if (!d) return;
         var partes = [];
         if (d.avisos > inicial.avisos) {
-          partes.push(d.avisos + (d.avisos === 1 ? ' aviso' : ' avisos') + ' por revisar');
+          partes.push(d.avisos === 1 ? t('aviso_1', '{n} aviso por revisar', { n: 1 })
+                                     : t('aviso_n', '{n} avisos por revisar', { n: d.avisos }));
         }
         if (d.retenidos > inicial.retenidos) {
-          partes.push(d.retenidos + (d.retenidos === 1 ? ' retenido' : ' retenidos') + ' por el filtro');
+          partes.push(d.retenidos === 1 ? t('retenido_1', '{n} retenido por el filtro', { n: 1 })
+                                        : t('retenido_n', '{n} retenidos por el filtro', { n: d.retenidos }));
         }
         if (!partes.length) return;
         document.getElementById('adm-novedades-texto').textContent =
-          'Novedades (' + ahora() + '): ' + partes.join(' · ') + '.';
+          t('novedades', 'Novedades ({hora}): {lista}.', { hora: ahora(), lista: partes.join(' · ') });
         novedades.hidden = false;
-        document.title = '(' + (d.avisos + d.retenidos) + ') Moderación · 25N';
+        document.title = '(' + (d.avisos + d.retenidos) + ') ' + t('titulo', 'Moderación') + ' · 25N';
       })
       .catch(function () {});
   };
@@ -133,13 +146,13 @@
     var b = document.createElement('button');
     b.type = 'button';
     b.className = 'adm-ver-mas';
-    b.textContent = 'Ver texto completo';
+    b.textContent = t('ver_completo', 'Ver texto completo');
     b.setAttribute('aria-expanded', 'false');
     b.addEventListener('click', function () {
       var abrir = b.getAttribute('aria-expanded') === 'false';
       p.classList.toggle('adm-recortado', !abrir);
       b.setAttribute('aria-expanded', String(abrir));
-      b.textContent = abrir ? 'Ver menos' : 'Ver texto completo';
+      b.textContent = abrir ? t('ver_menos', 'Ver menos') : t('ver_completo', 'Ver texto completo');
     });
     p.parentNode.insertBefore(b, p.nextSibling);
   });
@@ -166,7 +179,7 @@
           document.getElementById('adm-confirmar-cita').textContent = cita.textContent;
           dialogo.returnValue = '';
           dialogo.showModal();
-        } else if (window.confirm(pregunta + ' Esta acción no se puede deshacer.')) {
+        } else if (window.confirm(pregunta + ' ' + t('no_deshacer', 'Esta acción no se puede deshacer.'))) {
           enviar(f);
         }
         return;

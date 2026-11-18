@@ -1,22 +1,24 @@
 {# T06 — Página de agradecimiento con enlace para enviar otro mensaje. #}
+{% from '_idioma.html' import selector_idioma with context %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ idioma_actual }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#4a1a6b">
-  <title>¡Gracias! · 25N</title>
+  <title>{{ _('¡Gracias!') }} · 25N</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/participa.css') }}">
 </head>
 <body class="pagina-gracias">
   <main class="tarjeta">
+    {{ selector_idioma() }}
     <div class="icono" aria-hidden="true">✓</div>
-    <h1>¡Gracias por participar!</h1>
-    <p>Tu mensaje se ha enviado correctamente.</p>
-    <p>Si has enviado una reflexión, aparecerá en la pantalla cuando se haya revisado.</p>
-    <a class="boton" href="{{ url_for('participa') }}">Enviar otro mensaje</a>
+    <h1>{{ _('¡Gracias por participar!') }}</h1>
+    <p>{{ _('Tu mensaje se ha enviado correctamente.') }}</p>
+    <p>{{ _('Si has enviado una reflexión, aparecerá en la pantalla cuando se haya revisado.') }}</p>
+    <a class="boton" href="{{ url_for('participa') }}">{{ _('Enviar otro mensaje') }}</a>
     {# T03: enlace para avisar de un mensaje inapropiado que haya salido en la pantalla #}
-    <p><a href="{{ url_for('avisar') }}">¿Has visto en la pantalla un mensaje inapropiado? Avísanos</a></p>
+    <p><a href="{{ url_for('avisar') }}">{{ _('¿Has visto en la pantalla un mensaje inapropiado? Avísanos') }}</a></p>
   </main>
 </body>
 </html>

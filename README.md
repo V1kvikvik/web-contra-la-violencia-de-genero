@@ -28,6 +28,7 @@ Cada archivo ya existe con un comentario que indica qué tarea lo rellena.
 │   ├── admin.html          T03 · panel de moderación
 │   ├── avisar.html         T03 · el público avisa de un mensaje inapropiado
 │   ├── avisar_elemento.html  T03 · elegir el motivo del aviso
+│   ├── _idioma.html        i18n · selector de idioma (macro)
 │   └── pantalla.html       T04/T07/T08/T09/T10 · esqueleto común de la pantalla
 ├── static/
 │   ├── css/
@@ -48,6 +49,8 @@ Cada archivo ya existe con un comentario que indica qué tarea lo rellena.
 │   ├── fonts/              T07 · fuentes del mural en local (woff2, OFL)
 │   ├── img/qr.png          T10 · QR de /participa
 │   └── video/video.mp4     T08 · vídeo de concienciación
+├── traducciones/           i18n · catálogo (mensajes.pot) y en/LC_MESSAGES/messages.po
+├── babel.cfg               i18n · qué archivos revisa pybabel
 ├── deploy/                 T05 · scripts y plantillas de despliegue
 ├── docs/
 │   ├── tareas/             Enunciado de cada tarea (T01–T10)
@@ -65,6 +68,7 @@ Cada archivo ya existe con un comentario que indica qué tarea lo rellena.
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+pybabel compile -d traducciones   # idiomas: genera los .mo (no se suben a git)
 cp .env.example .env        # y rellena las contraseñas
 python -m bd.db             # crea datos/25n.db
 flask --app app run --debug
@@ -108,6 +112,7 @@ Nombres de las rutas (el nombre de la función en `app.py` = endpoint de `url_fo
 | `admin_pantalla` | `/admin/pantalla` (saltar / fijar / soltar una vista) | POST | Control de pantalla |
 | `avisar` | `/avisar` (público) | GET | T03 |
 | `avisar_elemento` | `/avisar/<tabla>/<int:id>` (público) | GET, POST | T03 |
+| `cambiar_idioma` | `/idioma/<codigo>?volver=<ruta>` (guarda la cookie y vuelve) | GET | i18n |
 
 Usuarios de HTTP Basic Auth: `admin` y `pantalla` (variables `ADMIN_USER`/`PANTALLA_USER` en `.env`),
 con las contraseñas `ADMIN_PASS` y `PANTALLA_PASS`.
@@ -143,6 +148,43 @@ pantalla obedece en unos segundos. Las órdenes se guardan en la tabla `ajustes`
 (`pantalla_fijada`, `pantalla_salto_vista`, `pantalla_salto_id`): si se recarga `/pantalla`
 respeta la vista fijada, pero no repite un salto antiguo. Si el vídeo está fijado y no se puede
 reproducir, la pantalla rota con normalidad para no quedarse en negro.
+
+## Idiomas (i18n)
+
+La web está en **español** (idioma de los textos en el código) e **inglés**, con
+[Flask-Babel](https://python-babel.github.io/flask-babel/).
+
+- **Qué idioma se ve:** el elegido en el selector (cookie `idioma`, un año) → si no, el del
+  navegador (`Accept-Language`) → si no, español. El selector está en `/participa`, `/gracias`,
+  `/avisar` y `/admin`. `/pantalla` no lo muestra (se proyecta): para cambiarla, abrir en ese
+  navegador `…/idioma/en?volver=/pantalla` (o `es`). El lema del QR y la cabecera del foro de la
+  pantalla son bilingües a propósito.
+- **Qué no se traduce:** lo que escribe el público, las palabras del filtro y el vídeo.
+  Los motivos que guarda la BD («Pendiente de aprobación», «Palabra filtrada: «…»») se guardan en
+  español y se traducen al mostrarlos (filtro `motivo` en `app.py`).
+
+**Cómo escribir textos nuevos**
+
+- Plantillas: `{{ _('Texto') }}`, con datos `{{ _('Mensaje #%(id)s', id=e.id) }}`, plurales
+  `{{ ngettext('%(num)d aviso', '%(num)d avisos', n) }}`. Nada de HTML dentro del texto: si hace
+  falta, se pasa como dato con `|safe` (ver «Búscalo aquí y pulsa…» en `avisar.html`).
+- Python: `_()` dentro de una petición; `_l()` en constantes del módulo (`_AVISOS_PANEL`).
+- JavaScript: la plantilla pasa los textos ya traducidos en `<body data-textos='{{ {...} | tojson }}'>`
+  y el JS los lee con `t('clave', 'español por defecto')`. Nunca `<script>` en línea.
+
+**Actualizar las traducciones** (tras añadir o cambiar textos):
+
+```bash
+pybabel extract -F babel.cfg -k _l --no-location --sort-output -o traducciones/mensajes.pot .
+pybabel update -i traducciones/mensajes.pot -d traducciones --no-fuzzy-matching
+# traducir los msgstr vacíos de traducciones/en/LC_MESSAGES/messages.po
+pybabel compile -d traducciones --statistics      # debe decir 100% translated
+```
+
+**Añadir otro idioma** (p. ej. gallego): `pybabel init -i traducciones/mensajes.pot -d traducciones -l gl`,
+traducir el `.po`, compilar y añadir `"gl": "Galego"` a `IDIOMAS` en `app.py`.
+
+Los `.mo` no se suben a git: `deploy/instalar.sh` y `deploy/actualizar.sh` los compilan.
 
 ## Normas del equipo
 

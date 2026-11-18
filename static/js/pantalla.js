@@ -209,19 +209,24 @@
 
   // ---------- Pantalla completa ----------
   // El botón se crea desde aquí para no tocar el esqueleto común de pantalla.html.
+  // Textos traducidos en <body data-textos="{…}"> (i18n); si faltan, español.
+  let textos = {};
+  try { textos = JSON.parse(document.body.dataset.textos || '{}'); } catch (e) { /* español */ }
+  const t = (clave, porDefecto) => textos[clave] || porDefecto;
+
   function crearBotonPantallaCompleta() {
     const boton = document.createElement('button');
     boton.type = 'button';
     boton.id = 'btn-pantalla-completa';
     boton.className = 'boton-pantalla-completa'; // estilo y ocultación en pantalla completa: T10
-    boton.textContent = 'Pantalla completa (o pulsa F11)';
+    boton.textContent = t('pantalla_completa', 'Pantalla completa (o pulsa F11)');
 
     boton.addEventListener('click', () => {
       const el = document.documentElement;
       if (el.requestFullscreen) {
-        el.requestFullscreen().catch(() => { boton.textContent = 'Pulsa F11 para pantalla completa'; });
+        el.requestFullscreen().catch(() => { boton.textContent = t('pulsa_f11', 'Pulsa F11 para pantalla completa'); });
       } else {
-        boton.textContent = 'Pulsa F11 para pantalla completa';
+        boton.textContent = t('pulsa_f11', 'Pulsa F11 para pantalla completa');
       }
       // Si el navegador había bloqueado el vídeo, el clic permite reintentarlo
       if (vistaActual === 'video' && video && video.paused) video.play().catch(() => {});

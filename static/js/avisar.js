@@ -6,6 +6,16 @@
 (function () {
   'use strict';
 
+  // Textos traducidos: los pone la plantilla en <body data-textos="{…}"> (i18n).
+  // Si faltan, se usa el español escrito aquí.
+  var TEXTOS = (function () {
+    try { return JSON.parse(document.body.dataset.textos || '{}'); } catch (e) { return {}; }
+  })();
+  var t = function (clave, porDefecto, datos) {
+    var texto = TEXTOS[clave] || porDefecto;
+    return texto.replace(/\{(\w+)\}/g, function (m, k) { return datos && k in datos ? datos[k] : m; });
+  };
+
   var norm = function (s) {
     return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   };
@@ -35,7 +45,7 @@
     formulario.addEventListener('submit', function (e) {
       if (boton.disabled) { e.preventDefault(); return; }
       boton.disabled = true;
-      boton.textContent = 'Enviando…';
+      boton.textContent = t('enviando', 'Enviando…');
     });
     window.addEventListener('pageshow', function () {
       boton.disabled = false;

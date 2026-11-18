@@ -55,6 +55,8 @@ cd <carpeta> && bash deploy/actualizar.sh https://thedevhub.santiagof.dev/colabo
       Buscar: `grep -rnE "(href|src|action)=\"/|fetch\('/" templates static`
 - [ ] Sin `<script>` ni `<style>` en línea ni atributos `onclick=`/`style=`: la cabecera CSP del servidor puede bloquearlos.
 - [ ] Usa los nombres de endpoint del README.
+- [ ] Textos visibles traducibles (`_()` en plantillas y Python, `data-textos` en JS) y
+      `pybabel compile -d traducciones --statistics` al 100 % (ver README, «Idiomas»).
 - [ ] Funciona en local: `flask --app app run --debug`.
 
 ## 4. Prueba completa (el día antes del evento)
