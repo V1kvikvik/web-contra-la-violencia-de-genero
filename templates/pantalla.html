@@ -1,15 +1,20 @@
 {# Pantalla proyectada. Esqueleto común: cada tarea rellena SOLO su parte.
    T04: rotación de vistas · T07: mural · T08: vídeo · T09: foro · T10: QR y estilos #}
 <!doctype html>
-<html lang="es">
+<html lang="{{ idioma_actual }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>25N · Pantalla</title>
+  <title>25N · {{ _('Pantalla') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
 </head>
 <body data-api-mural="{{ url_for('api_mural') }}" data-api-foro="{{ url_for('api_foro') }}"
-      data-api-control="{{ url_for('api_pantalla') }}">
+      data-api-control="{{ url_for('api_pantalla') }}"
+      data-textos='{{ {
+        "pantalla_completa": _("Pantalla completa (o pulsa F11)"),
+        "pulsa_f11": _("Pulsa F11 para pantalla completa"),
+        "video_titulo": _("Día Internacional para la Eliminación de la Violencia contra la Mujer"),
+      } | tojson }}'>
   <!-- T07: mural de burbujas -->
   <section id="vista-mural" class="vista"></section>
 
@@ -21,9 +26,10 @@
   <!-- T09: foro -->
   <section id="vista-foro" class="vista" hidden></section>
 
-  <!-- T10: QR fijo en una esquina, visible en las tres vistas -->
+  <!-- T10: QR fijo en una esquina, visible en las tres vistas.
+       El lema va en los dos idiomas a propósito: la pantalla la lee público de ambos. -->
   <aside id="qr">
-    <img src="{{ url_for('static', filename='img/qr.png') }}" alt="Código QR para participar">
+    <img src="{{ url_for('static', filename='img/qr.png') }}" alt="{{ _('Código QR para participar') }}">
     <p>Leave your message / Deja tu mensaje</p>
   </aside>
 

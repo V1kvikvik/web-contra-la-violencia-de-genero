@@ -16,6 +16,7 @@ git pull --ff-only origin main
 
 echo "==> Dependencias"
 .venv/bin/pip install --quiet -r requirements.txt
+.venv/bin/pybabel compile -d traducciones >/dev/null   # idiomas (i18n): .po → .mo
 
 echo "==> Base de datos (crea lo que falte, no borra nada)"
 set -a; . ./.env; set +a

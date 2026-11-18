@@ -1,0 +1,649 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-11-18 17:21+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#, python-format
+msgid "%(num)d aviso:"
+msgid_plural "%(num)d avisos:"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "(gratuito, 24 horas, no deja rastro en la factura)."
+msgstr ""
+
+msgid "Acceso restringido"
+msgstr ""
+
+#, python-brace-format
+msgid "Actualizado a las {hora}"
+msgstr ""
+
+msgid "Actualizar"
+msgstr ""
+
+msgid "Ajustes"
+msgstr ""
+
+#, python-format
+msgid "Ajustes guardados.%(retirados)s"
+msgstr ""
+
+msgid ""
+"Al añadir un término también se retira lo que ya esté en pantalla y lo "
+"contenga."
+msgstr ""
+
+msgid "Aprobar"
+msgstr ""
+
+msgid "Aprobar a mano todas las reflexiones del foro"
+msgstr ""
+
+msgid "Aquí esperan todas las reflexiones del foro y lo que ha parado el filtro."
+msgstr ""
+
+msgid "Aquí está lo que ha parado el filtro."
+msgstr ""
+
+msgid "Avisar"
+msgstr ""
+
+#, python-format
+msgid "Avisar de la reflexión %(id)s"
+msgstr ""
+
+msgid "Avisar de un mensaje"
+msgstr ""
+
+#, python-format
+msgid "Avisar del mensaje %(id)s"
+msgstr ""
+
+msgid "Avisos del público"
+msgstr ""
+
+msgid ""
+"Avisos del público: por defecto solo marcan la publicación aquí, en "
+"«Avisos del público»."
+msgstr ""
+
+msgid "Avisos por revisar"
+msgstr ""
+
+#, python-format
+msgid "Añadido al filtro: «%(termino)s».%(retirados)s"
+msgstr ""
+
+msgid "Añadir"
+msgstr ""
+
+msgid "Borrar"
+msgstr ""
+
+msgid "Buscar"
+msgstr ""
+
+msgid "Buscar en el filtro"
+msgstr ""
+
+msgid "Buscar en el filtro…"
+msgstr ""
+
+msgid "Buscar en las publicaciones"
+msgstr ""
+
+msgid "Buscar texto…"
+msgstr ""
+
+#, python-format
+msgid "Búscalo aquí y pulsa %(boton)s. Es anónimo."
+msgstr ""
+
+msgid "Cancelar"
+msgstr ""
+
+msgid "Cerrar aviso"
+msgstr ""
+
+msgid "Comparte una reflexión más larga para el foro."
+msgstr ""
+
+#, python-format
+msgid "Con %(asterisco)s al final cubre todo lo que empiece igual (%(ejemplo)s)."
+msgstr ""
+
+#, python-format
+msgid "Con %(num)d aviso se retiran solas de la pantalla hasta que decidas."
+msgid_plural "Con %(num)d avisos se retiran solas de la pantalla hasta que decidas."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Contiene un @usuario de redes sociales"
+msgstr ""
+
+msgid "Contiene un correo electrónico"
+msgstr ""
+
+msgid "Contiene un enlace"
+msgstr ""
+
+msgid "Contiene un número de teléfono"
+msgstr ""
+
+msgid "Cuántos avisos:"
+msgstr ""
+
+msgid "Código QR para participar"
+msgstr ""
+
+msgid "Deja tu mensaje"
+msgstr ""
+
+msgid "Día Internacional para la Eliminación de la Violencia contra la Mujer"
+msgstr ""
+
+msgid "El filtro de palabras está vacío."
+msgstr ""
+
+#, python-format
+msgid "El mensaje no puede superar los %(num)d caracteres."
+msgstr ""
+
+#, python-format
+msgid "El título no puede superar los %(num)d caracteres."
+msgstr ""
+
+msgid "Elige un motivo."
+msgstr ""
+
+msgid "En pantalla"
+msgstr ""
+
+msgid "Enviando…"
+msgstr ""
+
+msgid "Enviar aviso"
+msgstr ""
+
+msgid "Enviar mensaje"
+msgstr ""
+
+msgid "Enviar otro mensaje"
+msgstr ""
+
+msgid "Enviar reflexión"
+msgstr ""
+
+msgid "Es anónimo. Moderación lo revisará y, si es inapropiado, lo borrará."
+msgstr ""
+
+msgid "Escribe aquí tu mensaje…"
+msgstr ""
+
+msgid "Escribe aquí tu reflexión…"
+msgstr ""
+
+msgid "Escribe un mensaje antes de enviarlo."
+msgstr ""
+
+msgid "Escribe un título antes de enviar la reflexión."
+msgstr ""
+
+msgid "Escribe una palabra del mensaje"
+msgstr ""
+
+msgid "Escribe una reflexión antes de enviarla."
+msgstr ""
+
+msgid "Ese mensaje ya no está en la pantalla."
+msgstr ""
+
+msgid "Ese término ya estaba en el filtro."
+msgstr ""
+
+msgid "Esta acción no se puede deshacer."
+msgstr ""
+
+msgid "Fijada"
+msgstr ""
+
+#, python-format
+msgid "Fijada en %(vista)s"
+msgstr ""
+
+msgid "Fijar"
+msgstr ""
+
+msgid "Filtrar publicaciones"
+msgstr ""
+
+msgid "Filtro automático"
+msgstr ""
+
+msgid "Foro"
+msgstr ""
+
+msgid "Gracias por avisar."
+msgstr ""
+
+msgid "Guardar ajustes"
+msgstr ""
+
+msgid "Idioma"
+msgstr ""
+
+msgid "Importante:"
+msgstr ""
+
+msgid "Insultos, acoso o amenazas"
+msgstr ""
+
+msgid "Juntas contra la violencia de género"
+msgstr ""
+
+#, python-format
+msgid "La pantalla salta a «%(vista)s» y después sigue la rotación."
+msgstr ""
+
+#, python-format
+msgid ""
+"La pantalla se queda en «%(vista)s» hasta que vuelvas a la rotación "
+"automática."
+msgstr ""
+
+msgid "La pantalla vuelve a la rotación automática."
+msgstr ""
+
+#, python-format
+msgid "La reflexión no puede superar los %(num)d caracteres."
+msgstr ""
+
+msgid ""
+"Lo que está en la pantalla y lo retirado. «Retirar» lo quita en la "
+"siguiente actualización sin borrarlo."
+msgstr ""
+
+msgid ""
+"Los mensajes del mural se publican solos, salvo lo que coincide con estas"
+" palabras o reglas: eso queda pendiente para que decidas."
+msgstr ""
+
+msgid ""
+"Los mensajes y las reflexiones se publican solos, salvo lo que coincide "
+"con estas palabras o reglas: eso queda pendiente para que decidas."
+msgstr ""
+
+msgid "Mantener"
+msgstr ""
+
+msgid ""
+"Mejor dejarlo apagado: una sola persona podría vaciar la pantalla "
+"enviando avisos. Lo retirado así no se borra: espera a que decidas."
+msgstr ""
+
+#, python-format
+msgid "Mensaje #%(id)s borrado."
+msgstr ""
+
+#, python-format
+msgid ""
+"Mensaje #%(id)s publicado. Se verá en la pantalla en la próxima "
+"actualización."
+msgstr ""
+
+#, python-format
+msgid "Mensaje #%(id)s retirado de la pantalla."
+msgstr ""
+
+msgid "Mensaje burbuja"
+msgstr ""
+
+msgid "Mensajes del mural"
+msgstr ""
+
+msgid "Moderación"
+msgstr ""
+
+msgid "Moderación lo revisará y, si es inapropiado, lo quitará de la pantalla."
+msgstr ""
+
+msgid ""
+"Moderación lo revisará. Si varias personas avisan del mismo mensaje, se "
+"retira de la pantalla enseguida, antes incluso de que lo revisen."
+msgstr ""
+
+msgid "Motivo"
+msgstr ""
+
+msgid "Mural"
+msgstr ""
+
+msgid "Nada coincide con el filtro."
+msgstr ""
+
+msgid "Nada coincide con la búsqueda."
+msgstr ""
+
+#, python-format
+msgid ""
+"No hace falta escribir tildes, plurales ni trucos: %(ejemplo)s ya cubre "
+"«ZORRAS», «z0rra» o «z.o.r.r.a»."
+msgstr ""
+
+msgid "No hay avisos pendientes."
+msgstr ""
+
+msgid "No hay mensajes en la pantalla."
+msgstr ""
+
+msgid "No hay nada pendiente."
+msgstr ""
+
+msgid "No hay reflexiones en la pantalla."
+msgstr ""
+
+msgid "No salen en la pantalla hasta que los apruebes."
+msgstr ""
+
+msgid ""
+"No se ha añadido: usa solo letras y espacios (de 2 a 60), con * al final "
+"si quieres."
+msgstr ""
+
+msgid "No uses nombres reales ni datos que identifiquen a nadie."
+msgstr ""
+
+msgid "Nombres o datos personales"
+msgstr ""
+
+#, python-brace-format
+msgid "Novedades ({hora}): {lista}."
+msgstr ""
+
+msgid "Odio o discriminación"
+msgstr ""
+
+msgid "Otro motivo"
+msgstr ""
+
+#, python-format
+msgid "Palabra filtrada: «%(termino)s»"
+msgstr ""
+
+msgid "Palabra o expresión"
+msgstr ""
+
+msgid "Palabra o expresión para filtrar"
+msgstr ""
+
+msgid "Palabras y expresiones"
+msgstr ""
+
+msgid "Panel de moderación"
+msgstr ""
+
+msgid "Pantalla"
+msgstr ""
+
+msgid "Pantalla completa (o pulsa F11)"
+msgstr ""
+
+msgid "Participa"
+msgstr ""
+
+msgid "Pendiente"
+msgstr ""
+
+msgid "Pendiente de aprobación"
+msgstr ""
+
+msgid "Pendientes de revisar"
+msgstr ""
+
+msgid "Publicaciones"
+msgstr ""
+
+msgid "Publicaciones que alguien ha marcado como inapropiadas."
+msgstr ""
+
+msgid "Publicar"
+msgstr ""
+
+msgid "Publicar igualmente"
+msgstr ""
+
+msgid "Pulsa F11 para pantalla completa"
+msgstr ""
+
+msgid "Quitar del filtro"
+msgstr ""
+
+#, python-format
+msgid "Quitar «%(termino)s» del filtro"
+msgstr ""
+
+msgid ""
+"Recomendado: las reflexiones pueden contar casos reales con nombres o "
+"lugares que el filtro no detecta."
+msgstr ""
+
+msgid "Reflexiones del foro"
+msgstr ""
+
+msgid "Reflexión"
+msgstr ""
+
+#, python-format
+msgid "Reflexión #%(id)s borrada."
+msgstr ""
+
+#, python-format
+msgid ""
+"Reflexión #%(id)s publicada. Se verá en la pantalla en la próxima "
+"actualización."
+msgstr ""
+
+#, python-format
+msgid "Reflexión #%(id)s retirada de la pantalla."
+msgstr ""
+
+msgid ""
+"Reglas de privacidad: retienen lo que pueda identificar o localizar a "
+"alguien."
+msgstr ""
+
+msgid "Resumen"
+msgstr ""
+
+msgid "Retener @usuarios de redes sociales"
+msgstr ""
+
+msgid "Retener correos electrónicos"
+msgstr ""
+
+msgid "Retener enlaces (www…, http…, .com)"
+msgstr ""
+
+msgid "Retener números de teléfono"
+msgstr ""
+
+msgid "Retirado"
+msgstr ""
+
+#, python-format
+msgid "Retirado automáticamente al recibir %(num)s avisos"
+msgstr ""
+
+msgid "Retirado por moderación"
+msgstr ""
+
+msgid "Retirar"
+msgstr ""
+
+msgid "Retirar sola de la pantalla una publicación con muchos avisos"
+msgstr ""
+
+msgid "Rotación automática"
+msgstr ""
+
+msgid "Saltar ahora"
+msgstr ""
+
+msgid "Se elimina definitivamente. Esta acción no se puede deshacer."
+msgstr ""
+
+#, python-format
+msgid "Se ha retirado %(num)d publicación que ya estaba en pantalla."
+msgid_plural "Se han retirado %(num)d publicaciones que ya estaban en pantalla."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Se han enviado muchos avisos desde esta red. Espera unos minutos."
+msgstr ""
+
+msgid ""
+"Si has enviado una reflexión, aparecerá en la pantalla cuando se haya "
+"revisado."
+msgstr ""
+
+msgid "Si tú o alguien que conoces necesita ayuda:"
+msgstr ""
+
+msgid "Siguen en la pantalla hasta que decidas: los avisos no retiran nada solos."
+msgstr ""
+
+msgid "Todavía no hay publicaciones."
+msgstr ""
+
+msgid "Todo"
+msgstr ""
+
+msgid "Tu mensaje"
+msgstr ""
+
+msgid "Tu mensaje se ha enviado correctamente."
+msgstr ""
+
+msgid "Tu reflexión"
+msgstr ""
+
+msgid "Tu reflexión se mostrará tras ser revisada."
+msgstr ""
+
+msgid "Término quitado del filtro."
+msgstr ""
+
+msgid "Términos en el filtro"
+msgstr ""
+
+msgid "Título"
+msgstr ""
+
+msgid "Un mensaje corto que aparecerá en el mural de la pantalla."
+msgstr ""
+
+msgid "Un título breve"
+msgstr ""
+
+msgid "Ver menos"
+msgstr ""
+
+msgid "Ver texto completo"
+msgstr ""
+
+msgid "Volver a la rotación automática"
+msgstr ""
+
+msgid "Volver a publicar"
+msgstr ""
+
+msgid "Volver al formulario"
+msgstr ""
+
+msgid "Vídeo"
+msgstr ""
+
+msgid "Web contra la violencia de género"
+msgstr ""
+
+msgid "Ya está retirado de la pantalla."
+msgstr ""
+
+#, python-format
+msgid "hoy, %(hora)s"
+msgstr ""
+
+#, python-format
+msgid "mensaje %(id)s"
+msgstr ""
+
+#, python-format
+msgid "reflexión %(id)s"
+msgstr ""
+
+#, python-brace-format
+msgid "{n} aviso por revisar"
+msgstr ""
+
+#, python-brace-format
+msgid "{n} avisos por revisar"
+msgstr ""
+
+#, python-brace-format
+msgid "{n} retenido por el filtro"
+msgstr ""
+
+#, python-brace-format
+msgid "{n} retenidos por el filtro"
+msgstr ""
+
+msgid "¡Gracias por participar!"
+msgstr ""
+
+msgid "¡Gracias!"
+msgstr ""
+
+msgid ""
+"«Saltar» cambia la vista una vez y sigue rotando desde ahí. «Fijar» la "
+"deja quieta hasta que vuelvas a la rotación. La pantalla obedece en unos "
+"segundos."
+msgstr ""
+
+msgid "¿Borrar esta reflexión?"
+msgstr ""
+
+msgid "¿Borrar este mensaje?"
+msgstr ""
+
+msgid "¿Borrar?"
+msgstr ""
+
+msgid ""
+"¿Has visto en la pantalla un mensaje de odio, un insulto o datos de "
+"alguien?"
+msgstr ""
+
+msgid "¿Has visto en la pantalla un mensaje inapropiado? Avísanos"
+msgstr ""
+
+msgid "¿Qué le pasa a esta reflexión?"
+msgstr ""
+
+msgid "¿Qué le pasa a este mensaje?"
+msgstr ""
+

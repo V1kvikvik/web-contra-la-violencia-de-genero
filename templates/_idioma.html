@@ -1,0 +1,14 @@
+{#- i18n — Selector de idioma. Uso: {% from '_idioma.html' import selector_idioma %}{{ selector_idioma() }}
+    Cada idioma se escribe en su propio idioma («English», «Español»): no se traduce.
+    El enlace va a /idioma/<codigo>, que guarda la cookie y vuelve a esta misma página. -#}
+{% macro selector_idioma(clase='') -%}
+<nav class="selector-idioma {{ clase }}" aria-label="{{ _('Idioma') }}">
+  {%- for codigo, nombre in idiomas.items() %}
+    {%- if codigo == idioma_actual %}
+    <span class="selector-idioma-actual" lang="{{ codigo }}" aria-current="true">{{ nombre }}</span>
+    {%- else %}
+    <a href="{{ url_for('cambiar_idioma', codigo=codigo, volver=volver_aqui()) }}" lang="{{ codigo }}" hreflang="{{ codigo }}">{{ nombre }}</a>
+    {%- endif %}
+  {%- endfor %}
+</nav>
+{%- endmacro %}

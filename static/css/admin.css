@@ -100,6 +100,25 @@ body.admin [hidden] { display: none !important; }
 .adm-barra-der { display: flex; align-items: center; gap: 14px; }
 .adm-hora { font-size: 13px; color: var(--lavanda); white-space: nowrap; }
 
+/* Selector de idioma (i18n, templates/_idioma.html) */
+.adm-idioma { display: flex; gap: 2px; font-size: 13px; }
+.adm-idioma a,
+.adm-idioma .selector-idioma-actual {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: var(--blanco);
+}
+.adm-idioma a { color: var(--lavanda); }
+.adm-idioma a:hover { background: rgba(255, 255, 255, .12); }
+.adm-idioma .selector-idioma-actual { font-weight: 700; background: rgba(255, 255, 255, .16); }
+/* En móvil no cabe todo en una línea: la marca no se encoge y lo demás baja a otra fila */
+.adm-barra-in { flex-wrap: wrap; }
+.adm-marca strong { white-space: nowrap; }
+.adm-barra-der { flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
+
 /* ---------- Contenido ---------- */
 .adm {
   max-width: 1120px;

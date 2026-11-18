@@ -5,6 +5,8 @@ Responsables:
 - T02: decorador de HTTP Basic Auth, GET /api/mural, GET /api/foro, GET /pantalla
 - T03: GET /admin y POST /admin/<tabla>/<id>/<accion>, más el filtro automático
        (/admin/filtros, /admin/ajustes) y los avisos del público (/avisar)
+- i18n: idiomas con Flask-Babel (español y inglés). Textos con _() / _l();
+        catálogos en traducciones/ (ver README, «Idiomas»).
 
 Toda la base de datos se usa a través de `bd.db` (no escribir SQL aquí).
 """
@@ -20,7 +22,11 @@ from collections import defaultdict, deque
 from datetime import datetime, timezone
 from functools import wraps
 
+from urllib.parse import urlencode
+
+from babel.dates import format_datetime, format_time
 from flask import Flask, Response, abort, jsonify, redirect, render_template, request, url_for
+from flask_babel import Babel, get_locale, gettext as _, lazy_gettext as _l, ngettext
 
 from bd import db
 
@@ -66,7 +72,7 @@ def requiere_rol(*roles):
         def envoltura(*args, **kwargs):
             if _rol_autenticado() not in roles:
                 return Response(
-                    "Acceso restringido",
+                    _("Acceso restringido"),
                     401,
                     {"WWW-Authenticate": 'Basic realm="25N", charset="UTF-8"'},
                 )
@@ -102,24 +108,25 @@ def _comprobar_csrf():
 
 # Aviso que se muestra en el panel tras cada acción (?hecho=objeto.accion.id&n=retirados).
 # Son textos fijos: de la dirección solo se toman números.
+# Se traducen al pintarlos (_l = traducción perezosa, en el idioma de cada petición).
 _AVISOS_PANEL = {
-    ("mural", "mostrar"): "Mensaje #{id} publicado. Se verá en la pantalla en la próxima actualización.",
-    ("mural", "ocultar"): "Mensaje #{id} retirado de la pantalla.",
-    ("mural", "borrar"): "Mensaje #{id} borrado.",
-    ("foro", "aprobar"): "Reflexión #{id} publicada. Se verá en la pantalla en la próxima actualización.",
-    ("foro", "retirar"): "Reflexión #{id} retirada de la pantalla.",
-    ("foro", "borrar"): "Reflexión #{id} borrada.",
-    ("filtro", "anadido"): "Añadido al filtro: «{termino}».{retirados}",
-    ("filtro", "quitado"): "Término quitado del filtro.",
-    ("filtro", "invalido"): "No se ha añadido: usa solo letras y espacios (de 2 a 60), con * al final si quieres.",
-    ("filtro", "repetido"): "Ese término ya estaba en el filtro.",
-    ("ajustes", "guardados"): "Ajustes guardados.{retirados}",
-    ("pantalla", "saltar"): "La pantalla salta a «{vista}» y después sigue la rotación.",
-    ("pantalla", "fijar"): "La pantalla se queda en «{vista}» hasta que vuelvas a la rotación automática.",
-    ("pantalla", "soltar"): "La pantalla vuelve a la rotación automática.",
+    ("mural", "mostrar"): _l("Mensaje #%(id)s publicado. Se verá en la pantalla en la próxima actualización."),
+    ("mural", "ocultar"): _l("Mensaje #%(id)s retirado de la pantalla."),
+    ("mural", "borrar"): _l("Mensaje #%(id)s borrado."),
+    ("foro", "aprobar"): _l("Reflexión #%(id)s publicada. Se verá en la pantalla en la próxima actualización."),
+    ("foro", "retirar"): _l("Reflexión #%(id)s retirada de la pantalla."),
+    ("foro", "borrar"): _l("Reflexión #%(id)s borrada."),
+    ("filtro", "anadido"): _l("Añadido al filtro: «%(termino)s».%(retirados)s"),
+    ("filtro", "quitado"): _l("Término quitado del filtro."),
+    ("filtro", "invalido"): _l("No se ha añadido: usa solo letras y espacios (de 2 a 60), con * al final si quieres."),
+    ("filtro", "repetido"): _l("Ese término ya estaba en el filtro."),
+    ("ajustes", "guardados"): _l("Ajustes guardados.%(retirados)s"),
+    ("pantalla", "saltar"): _l("La pantalla salta a «%(vista)s» y después sigue la rotación."),
+    ("pantalla", "fijar"): _l("La pantalla se queda en «%(vista)s» hasta que vuelvas a la rotación automática."),
+    ("pantalla", "soltar"): _l("La pantalla vuelve a la rotación automática."),
 }
 # Nombre de cada vista de /pantalla en el panel. En ?hecho=pantalla.<accion>.<n> va su posición.
-_NOMBRES_VISTAS = {"mural": "Mural", "video": "Vídeo", "foro": "Foro"}
+_NOMBRES_VISTAS = {"mural": _l("Mural"), "video": _l("Vídeo"), "foro": _l("Foro")}
 _AVISOS_ERROR = {("filtro", "invalido"), ("filtro", "repetido")}
 _ANCLA_PANEL = {"mural": "revision", "foro": "revision", "filtro": "filtro", "ajustes": "filtro",
                 "pantalla": "control-pantalla"}
@@ -145,10 +152,9 @@ def _ultima_accion():
     n = request.args.get("n", "")
     n = int(n) if n.isdigit() and len(n) < 7 else 0
     retirados = ""
-    if n == 1:
-        retirados = " Se ha retirado 1 publicación que ya estaba en pantalla."
-    elif n > 1:
-        retirados = " Se han retirado %d publicaciones que ya estaban en pantalla." % n
+    if n:
+        retirados = " " + ngettext("Se ha retirado %(num)d publicación que ya estaba en pantalla.",
+                                   "Se han retirado %(num)d publicaciones que ya estaban en pantalla.", n)
     termino = ""
     if (objeto, accion) == ("filtro", "anadido"):
         termino = db.termino_filtro(id_)
@@ -160,7 +166,7 @@ def _ultima_accion():
             return None
         vista = _NOMBRES_VISTAS[db.VISTAS_PANTALLA[id_]]
     return {
-        "texto": plantilla.format(id=id_, termino=termino, retirados=retirados, vista=vista),
+        "texto": str(plantilla) % {"id": id_, "termino": termino, "retirados": retirados, "vista": vista},
         "tipo": "error" if (objeto, accion) in _AVISOS_ERROR else "ok",
         "resaltar": "%s-%d" % (objeto, id_) if objeto in db.TABLAS and accion != "borrar" else None,
     }
@@ -175,8 +181,8 @@ def _zona_horaria():
 
 
 def _fecha(valor):
-    """Filtro de plantilla: "hoy, 10:42" o "17/11/2026 18:05" en hora de España.
-    SQLite guarda `creado` en UTC."""
+    """Filtro de plantilla: "hoy, 10:42" o "17/11/26, 18:05" (formato del idioma) en hora
+    de España. SQLite guarda `creado` en UTC."""
     if not valor:
         return ""
     try:
@@ -187,9 +193,64 @@ def _fecha(valor):
         momento = momento.replace(tzinfo=timezone.utc)
     zona = _zona_horaria()
     local = momento.astimezone(zona)
+    idioma = str(get_locale() or "es")
     if local.date() == datetime.now(timezone.utc).astimezone(zona).date():
-        return "hoy, " + local.strftime("%H:%M")
-    return local.strftime("%d/%m/%Y %H:%M")
+        return _("hoy, %(hora)s", hora=format_time(local, "short", locale=idioma))
+    return format_datetime(local, "short", locale=idioma)
+
+
+# --- i18n: idiomas ---------------------------------------------------------------
+# Orden de elección: cookie «idioma» (selector de la web) → idioma del navegador → español.
+IDIOMAS = {"es": "Español", "en": "English"}  # cada uno en su propio idioma: no se traducen
+IDIOMA_POR_DEFECTO = "es"
+
+# Textos que bd/ guarda o devuelve en español (motivos de retención y de avisos).
+# La BD los guarda siempre igual; se traducen solo al mostrarlos.
+_TEXTOS_BD = {texto: traducido for texto, traducido in (
+    ("Pendiente de aprobación", _l("Pendiente de aprobación")),
+    ("Retirado por moderación", _l("Retirado por moderación")),
+    ("Contiene un correo electrónico", _l("Contiene un correo electrónico")),
+    ("Contiene un enlace", _l("Contiene un enlace")),
+    ("Contiene un número de teléfono", _l("Contiene un número de teléfono")),
+    ("Contiene un @usuario de redes sociales", _l("Contiene un @usuario de redes sociales")),
+    ("Odio o discriminación", _l("Odio o discriminación")),
+    ("Insultos, acoso o amenazas", _l("Insultos, acoso o amenazas")),
+    ("Nombres o datos personales", _l("Nombres o datos personales")),
+    ("Otro motivo", _l("Otro motivo")),
+)}
+_MOTIVO_PALABRA = re.compile(r"^Palabra filtrada: «(.*)»$")
+_MOTIVO_AVISOS = re.compile(r"^Retirado automáticamente al recibir (\d+) avisos$")
+
+
+def _elegir_idioma():
+    elegido = request.cookies.get("idioma")
+    if elegido in IDIOMAS:
+        return elegido
+    return request.accept_languages.best_match(IDIOMAS) or IDIOMA_POR_DEFECTO
+
+
+def _motivo(texto):
+    """Filtro de plantilla: traduce un motivo guardado por bd/ (si no se conoce, tal cual)."""
+    if not texto:
+        return ""
+    if texto in _TEXTOS_BD:
+        return str(_TEXTOS_BD[texto])
+    palabra = _MOTIVO_PALABRA.match(texto)
+    if palabra:
+        return _("Palabra filtrada: «%(termino)s»", termino=palabra.group(1))
+    avisos = _MOTIVO_AVISOS.match(texto)
+    if avisos:
+        return _("Retirado automáticamente al recibir %(num)s avisos", num=avisos.group(1))
+    return texto
+
+
+def _volver_aqui():
+    """Ruta (sin el prefijo del subdirectorio) a la que vuelve el selector de idioma."""
+    regla = request.url_rule
+    if regla is None or "GET" not in (regla.methods or ()):
+        return "/"  # p. ej. un error tras enviar el formulario: se vuelve al inicio
+    args = [(k, v) for k, v in request.args.items(multi=True) if k not in ("hecho", "n", "enviado")]
+    return request.path + ("?" + urlencode(args) if args else "")
 
 
 class Limitador:
@@ -214,7 +275,33 @@ class Limitador:
 
 def create_app():
     app = Flask(__name__)
+    app.config["BABEL_DEFAULT_LOCALE"] = IDIOMA_POR_DEFECTO
+    app.config["BABEL_TRANSLATION_DIRECTORIES"] = "traducciones"
+    Babel(app, locale_selector=_elegir_idioma)
     db.init_db()
+
+    app.add_template_filter(_motivo, "motivo")
+
+    @app.context_processor
+    def datos_idioma():
+        return {"idiomas": IDIOMAS, "idioma_actual": str(get_locale() or IDIOMA_POR_DEFECTO),
+                "volver_aqui": _volver_aqui}
+
+    @app.get("/idioma/<codigo>")
+    def cambiar_idioma(codigo):
+        """Selector de idioma: guarda la elección en una cookie y vuelve a la página de antes.
+        ?volver= solo admite rutas de esta app (nada de redirigir a otras webs)."""
+        if codigo not in IDIOMAS:
+            abort(404)
+        volver = request.args.get("volver", "")
+        if volver.startswith("/") and not volver.startswith("//") and "\\" not in volver:
+            destino = request.script_root + volver
+        else:
+            destino = url_for("participa")
+        resp = redirect(destino, code=303)
+        resp.set_cookie("idioma", codigo, max_age=365 * 24 * 3600, path=url_for("inicio"),
+                        samesite="Lax", secure=request.is_secure)
+        return resp
 
     @app.get("/")
     def inicio():
@@ -230,15 +317,13 @@ def create_app():
         if not texto:
             return render_template(
                 "participa.html",
-                error_message="Escribe un mensaje antes de enviarlo.",
+                error_message=_("Escribe un mensaje antes de enviarlo."),
             ), 400
         if len(texto) > db.MAX_MURAL_TEXTO:
             return render_template(
                 "participa.html",
-                error_message=(
-                    f"El mensaje no puede superar los "
-                    f"{db.MAX_MURAL_TEXTO} caracteres."
-                ),
+                error_message=_("El mensaje no puede superar los %(num)d caracteres.",
+                                num=db.MAX_MURAL_TEXTO),
             ), 400
 
         db.insertar_mural(texto)
@@ -250,19 +335,15 @@ def create_app():
         texto = request.form.get("texto", "").strip()
 
         if not titulo:
-            error_message = "Escribe un título antes de enviar la reflexión."
+            error_message = _("Escribe un título antes de enviar la reflexión.")
         elif len(titulo) > db.MAX_FORO_TITULO:
-            error_message = (
-                f"El título no puede superar los "
-                f"{db.MAX_FORO_TITULO} caracteres."
-            )
+            error_message = _("El título no puede superar los %(num)d caracteres.",
+                              num=db.MAX_FORO_TITULO)
         elif not texto:
-            error_message = "Escribe una reflexión antes de enviarla."
+            error_message = _("Escribe una reflexión antes de enviarla.")
         elif len(texto) > db.MAX_FORO_TEXTO:
-            error_message = (
-                f"La reflexión no puede superar los "
-                f"{db.MAX_FORO_TEXTO} caracteres."
-            )
+            error_message = _("La reflexión no puede superar los %(num)d caracteres.",
+                              num=db.MAX_FORO_TEXTO)
         else:
             error_message = None
 
@@ -311,6 +392,14 @@ def create_app():
     # --- T03: panel de moderación (solo rol admin) --------------------------
 
     app.add_template_filter(_fecha, "fecha")
+
+    @app.after_request
+    def variar_por_idioma(resp):
+        # La misma URL sale en otro idioma según la cookie o el navegador: que no se cachee mezclada.
+        if resp.mimetype == "text/html":
+            resp.vary.add("Accept-Language")
+            resp.vary.add("Cookie")
+        return resp
 
     @app.after_request
     def cabeceras_admin(resp):
@@ -431,17 +520,17 @@ def create_app():
     def avisar_elemento(tabla, id):
         item = db.elemento_publico(tabla, id)
         if item is None:
-            return pagina_avisar("Ese mensaje ya no está en la pantalla.", 404)
+            return pagina_avisar(_("Ese mensaje ya no está en la pantalla."), 404)
         if request.method == "GET":
             resp = Response(render_template("avisar_elemento.html", item=item, motivos=db.MOTIVOS_AVISO))
             huella_avisador(resp)
             return resp
         if not limite_avisos.permitir(request.remote_addr or "?"):
-            return pagina_avisar("Se han enviado muchos avisos desde esta red. Espera unos minutos.", 429)
+            return pagina_avisar(_("Se han enviado muchos avisos desde esta red. Espera unos minutos."), 429)
         motivo = request.form.get("motivo", "")
         if motivo not in db.MOTIVOS_AVISO:
             return render_template("avisar_elemento.html", item=item, motivos=db.MOTIVOS_AVISO,
-                                   error_message="Elige un motivo."), 400
+                                   error_message=_("Elige un motivo.")), 400
         resp = redirect(url_for("avisar", enviado=1), code=303)
         db.registrar_aviso(tabla, id, motivo, huella_avisador(resp))
         return resp

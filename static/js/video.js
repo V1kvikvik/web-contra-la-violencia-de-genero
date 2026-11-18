@@ -137,7 +137,9 @@
     insignia.textContent = '25N';
     const titulo = document.createElement('span');
     titulo.className = 'video-titulo';
-    titulo.textContent = 'Día Internacional de la Eliminación de la Violencia contra la Mujer';
+    let textos = {};  // traducciones de <body data-textos="{…}"> (i18n)
+    try { textos = JSON.parse(document.body.dataset.textos || '{}'); } catch (_) { /* español */ }
+    titulo.textContent = textos.video_titulo || 'Día Internacional para la Eliminación de la Violencia contra la Mujer';
     tiempo = document.createElement('span');
     tiempo.className = 'video-tiempo';
     tiempo.setAttribute('aria-hidden', 'true');

@@ -1,0 +1,699 @@
+# English translations for 25N.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the 25N project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 25N VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-11-18 17:21+0100\n"
+"PO-Revision-Date: 2026-11-18 17:19+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#, python-format
+msgid "%(num)d aviso:"
+msgid_plural "%(num)d avisos:"
+msgstr[0] "%(num)d report:"
+msgstr[1] "%(num)d reports:"
+
+msgid "(gratuito, 24 horas, no deja rastro en la factura)."
+msgstr "(free, 24 hours, does not appear on the phone bill)."
+
+msgid "Acceso restringido"
+msgstr "Restricted access"
+
+#, python-brace-format
+msgid "Actualizado a las {hora}"
+msgstr "Updated at {hora}"
+
+msgid "Actualizar"
+msgstr "Refresh"
+
+msgid "Ajustes"
+msgstr "Settings"
+
+#, python-format
+msgid "Ajustes guardados.%(retirados)s"
+msgstr "Settings saved.%(retirados)s"
+
+msgid ""
+"Al añadir un término también se retira lo que ya esté en pantalla y lo "
+"contenga."
+msgstr "Adding a term also removes anything already on screen that contains it."
+
+msgid "Aprobar"
+msgstr "Approve"
+
+msgid "Aprobar a mano todas las reflexiones del foro"
+msgstr "Manually approve every forum reflection"
+
+msgid "Aquí esperan todas las reflexiones del foro y lo que ha parado el filtro."
+msgstr ""
+"All forum reflections wait here, together with whatever the filter has "
+"held back."
+
+msgid "Aquí está lo que ha parado el filtro."
+msgstr "Here is what the filter has held back."
+
+msgid "Avisar"
+msgstr "Report"
+
+#, python-format
+msgid "Avisar de la reflexión %(id)s"
+msgstr "Report reflection %(id)s"
+
+msgid "Avisar de un mensaje"
+msgstr "Report a message"
+
+#, python-format
+msgid "Avisar del mensaje %(id)s"
+msgstr "Report message %(id)s"
+
+msgid "Avisos del público"
+msgstr "Public reports"
+
+msgid ""
+"Avisos del público: por defecto solo marcan la publicación aquí, en "
+"«Avisos del público»."
+msgstr ""
+"Public reports: by default they only flag the post here, under “Public "
+"reports”."
+
+msgid "Avisos por revisar"
+msgstr "Reports to review"
+
+#, python-format
+msgid "Añadido al filtro: «%(termino)s».%(retirados)s"
+msgstr "Added to the filter: “%(termino)s”.%(retirados)s"
+
+msgid "Añadir"
+msgstr "Add"
+
+msgid "Borrar"
+msgstr "Delete"
+
+msgid "Buscar"
+msgstr "Search"
+
+msgid "Buscar en el filtro"
+msgstr "Search the filter"
+
+msgid "Buscar en el filtro…"
+msgstr "Search the filter…"
+
+msgid "Buscar en las publicaciones"
+msgstr "Search posts"
+
+msgid "Buscar texto…"
+msgstr "Search text…"
+
+#, python-format
+msgid "Búscalo aquí y pulsa %(boton)s. Es anónimo."
+msgstr "Find it here and tap %(boton)s. It is anonymous."
+
+msgid "Cancelar"
+msgstr "Cancel"
+
+msgid "Cerrar aviso"
+msgstr "Close notice"
+
+msgid "Comparte una reflexión más larga para el foro."
+msgstr "Share a longer reflection for the forum."
+
+#, python-format
+msgid "Con %(asterisco)s al final cubre todo lo que empiece igual (%(ejemplo)s)."
+msgstr ""
+"With %(asterisco)s at the end it covers everything that starts the same "
+"way (%(ejemplo)s)."
+
+#, python-format
+msgid "Con %(num)d aviso se retiran solas de la pantalla hasta que decidas."
+msgid_plural "Con %(num)d avisos se retiran solas de la pantalla hasta que decidas."
+msgstr[0] ""
+"With %(num)d report they are removed from the screen automatically until "
+"you decide."
+msgstr[1] ""
+"With %(num)d reports they are removed from the screen automatically until"
+" you decide."
+
+msgid "Contiene un @usuario de redes sociales"
+msgstr "Contains a social media @username"
+
+msgid "Contiene un correo electrónico"
+msgstr "Contains an email address"
+
+msgid "Contiene un enlace"
+msgstr "Contains a link"
+
+msgid "Contiene un número de teléfono"
+msgstr "Contains a phone number"
+
+msgid "Cuántos avisos:"
+msgstr "How many reports:"
+
+msgid "Código QR para participar"
+msgstr "QR code to take part"
+
+msgid "Deja tu mensaje"
+msgstr "Leave your message"
+
+msgid "Día Internacional para la Eliminación de la Violencia contra la Mujer"
+msgstr "International Day for the Elimination of Violence against Women"
+
+msgid "El filtro de palabras está vacío."
+msgstr "The word filter is empty."
+
+#, python-format
+msgid "El mensaje no puede superar los %(num)d caracteres."
+msgstr "The message cannot be longer than %(num)d characters."
+
+#, python-format
+msgid "El título no puede superar los %(num)d caracteres."
+msgstr "The title cannot be longer than %(num)d characters."
+
+msgid "Elige un motivo."
+msgstr "Choose a reason."
+
+msgid "En pantalla"
+msgstr "On screen"
+
+msgid "Enviando…"
+msgstr "Sending…"
+
+msgid "Enviar aviso"
+msgstr "Send report"
+
+msgid "Enviar mensaje"
+msgstr "Send message"
+
+msgid "Enviar otro mensaje"
+msgstr "Send another message"
+
+msgid "Enviar reflexión"
+msgstr "Send reflection"
+
+msgid "Es anónimo. Moderación lo revisará y, si es inapropiado, lo borrará."
+msgstr ""
+"It is anonymous. Moderators will review it and delete it if it is "
+"inappropriate."
+
+msgid "Escribe aquí tu mensaje…"
+msgstr "Write your message here…"
+
+msgid "Escribe aquí tu reflexión…"
+msgstr "Write your reflection here…"
+
+msgid "Escribe un mensaje antes de enviarlo."
+msgstr "Write a message before sending it."
+
+msgid "Escribe un título antes de enviar la reflexión."
+msgstr "Write a title before sending the reflection."
+
+msgid "Escribe una palabra del mensaje"
+msgstr "Type a word from the message"
+
+msgid "Escribe una reflexión antes de enviarla."
+msgstr "Write a reflection before sending it."
+
+msgid "Ese mensaje ya no está en la pantalla."
+msgstr "That message is no longer on the screen."
+
+msgid "Ese término ya estaba en el filtro."
+msgstr "That term was already in the filter."
+
+msgid "Esta acción no se puede deshacer."
+msgstr "This cannot be undone."
+
+msgid "Fijada"
+msgstr "Pinned"
+
+#, python-format
+msgid "Fijada en %(vista)s"
+msgstr "Pinned to %(vista)s"
+
+msgid "Fijar"
+msgstr "Pin"
+
+msgid "Filtrar publicaciones"
+msgstr "Filter posts"
+
+msgid "Filtro automático"
+msgstr "Automatic filter"
+
+msgid "Foro"
+msgstr "Forum"
+
+msgid "Gracias por avisar."
+msgstr "Thank you for reporting it."
+
+msgid "Guardar ajustes"
+msgstr "Save settings"
+
+msgid "Idioma"
+msgstr "Language"
+
+msgid "Importante:"
+msgstr "Important:"
+
+msgid "Insultos, acoso o amenazas"
+msgstr "Insults, harassment or threats"
+
+msgid "Juntas contra la violencia de género"
+msgstr "Together against gender-based violence"
+
+#, python-format
+msgid "La pantalla salta a «%(vista)s» y después sigue la rotación."
+msgstr "The screen jumps to “%(vista)s” and then continues rotating."
+
+#, python-format
+msgid ""
+"La pantalla se queda en «%(vista)s» hasta que vuelvas a la rotación "
+"automática."
+msgstr ""
+"The screen stays on “%(vista)s” until you switch back to automatic "
+"rotation."
+
+msgid "La pantalla vuelve a la rotación automática."
+msgstr "The screen is back on automatic rotation."
+
+#, python-format
+msgid "La reflexión no puede superar los %(num)d caracteres."
+msgstr "The reflection cannot be longer than %(num)d characters."
+
+msgid ""
+"Lo que está en la pantalla y lo retirado. «Retirar» lo quita en la "
+"siguiente actualización sin borrarlo."
+msgstr ""
+"What is on screen and what has been removed. “Remove” takes it off at the"
+" next refresh without deleting it."
+
+msgid ""
+"Los mensajes del mural se publican solos, salvo lo que coincide con estas"
+" palabras o reglas: eso queda pendiente para que decidas."
+msgstr ""
+"Wall messages are published automatically, except those that match these "
+"words or rules: they are held for you to decide."
+
+msgid ""
+"Los mensajes y las reflexiones se publican solos, salvo lo que coincide "
+"con estas palabras o reglas: eso queda pendiente para que decidas."
+msgstr ""
+"Messages and reflections are published automatically, except those that "
+"match these words or rules: they are held for you to decide."
+
+msgid "Mantener"
+msgstr "Keep"
+
+msgid ""
+"Mejor dejarlo apagado: una sola persona podría vaciar la pantalla "
+"enviando avisos. Lo retirado así no se borra: espera a que decidas."
+msgstr ""
+"Best left off: a single person could empty the screen by sending reports."
+" Anything removed this way is not deleted: it waits for your decision."
+
+#, python-format
+msgid "Mensaje #%(id)s borrado."
+msgstr "Message #%(id)s deleted."
+
+#, python-format
+msgid ""
+"Mensaje #%(id)s publicado. Se verá en la pantalla en la próxima "
+"actualización."
+msgstr ""
+"Message #%(id)s published. It will appear on the screen at the next "
+"refresh."
+
+#, python-format
+msgid "Mensaje #%(id)s retirado de la pantalla."
+msgstr "Message #%(id)s removed from the screen."
+
+msgid "Mensaje burbuja"
+msgstr "Bubble message"
+
+msgid "Mensajes del mural"
+msgstr "Wall messages"
+
+msgid "Moderación"
+msgstr "Moderation"
+
+msgid "Moderación lo revisará y, si es inapropiado, lo quitará de la pantalla."
+msgstr ""
+"Moderators will review it and, if it is inappropriate, take it off the "
+"screen."
+
+msgid ""
+"Moderación lo revisará. Si varias personas avisan del mismo mensaje, se "
+"retira de la pantalla enseguida, antes incluso de que lo revisen."
+msgstr ""
+"Moderators will review it. If several people report the same message, it "
+"is taken off the screen straight away, even before it is reviewed."
+
+msgid "Motivo"
+msgstr "Reason"
+
+msgid "Mural"
+msgstr "Wall"
+
+msgid "Nada coincide con el filtro."
+msgstr "Nothing matches the filter."
+
+msgid "Nada coincide con la búsqueda."
+msgstr "Nothing matches your search."
+
+#, python-format
+msgid ""
+"No hace falta escribir tildes, plurales ni trucos: %(ejemplo)s ya cubre "
+"«ZORRAS», «z0rra» o «z.o.r.r.a»."
+msgstr ""
+"No need to add accents, plurals or tricks: %(ejemplo)s already covers "
+"“ZORRAS”, “z0rra” or “z.o.r.r.a”."
+
+msgid "No hay avisos pendientes."
+msgstr "No pending reports."
+
+msgid "No hay mensajes en la pantalla."
+msgstr "There are no messages on the screen."
+
+msgid "No hay nada pendiente."
+msgstr "Nothing pending."
+
+msgid "No hay reflexiones en la pantalla."
+msgstr "There are no reflections on the screen."
+
+msgid "No salen en la pantalla hasta que los apruebes."
+msgstr "They do not appear on the screen until you approve them."
+
+msgid ""
+"No se ha añadido: usa solo letras y espacios (de 2 a 60), con * al final "
+"si quieres."
+msgstr ""
+"Not added: use only letters and spaces (2 to 60), optionally with * at "
+"the end."
+
+msgid "No uses nombres reales ni datos que identifiquen a nadie."
+msgstr "Do not use real names or any details that could identify anyone."
+
+msgid "Nombres o datos personales"
+msgstr "Names or personal details"
+
+#, python-brace-format
+msgid "Novedades ({hora}): {lista}."
+msgstr "New ({hora}): {lista}."
+
+msgid "Odio o discriminación"
+msgstr "Hate or discrimination"
+
+msgid "Otro motivo"
+msgstr "Other reason"
+
+#, python-format
+msgid "Palabra filtrada: «%(termino)s»"
+msgstr "Filtered word: “%(termino)s”"
+
+msgid "Palabra o expresión"
+msgstr "Word or phrase"
+
+msgid "Palabra o expresión para filtrar"
+msgstr "Word or phrase to filter"
+
+msgid "Palabras y expresiones"
+msgstr "Words and phrases"
+
+msgid "Panel de moderación"
+msgstr "Moderation panel"
+
+msgid "Pantalla"
+msgstr "Screen"
+
+msgid "Pantalla completa (o pulsa F11)"
+msgstr "Full screen (or press F11)"
+
+msgid "Participa"
+msgstr "Take part"
+
+msgid "Pendiente"
+msgstr "Pending"
+
+msgid "Pendiente de aprobación"
+msgstr "Awaiting approval"
+
+msgid "Pendientes de revisar"
+msgstr "Pending review"
+
+msgid "Publicaciones"
+msgstr "Posts"
+
+msgid "Publicaciones que alguien ha marcado como inapropiadas."
+msgstr "Posts that someone has flagged as inappropriate."
+
+msgid "Publicar"
+msgstr "Publish"
+
+msgid "Publicar igualmente"
+msgstr "Publish anyway"
+
+msgid "Pulsa F11 para pantalla completa"
+msgstr "Press F11 for full screen"
+
+msgid "Quitar del filtro"
+msgstr "Remove from the filter"
+
+#, python-format
+msgid "Quitar «%(termino)s» del filtro"
+msgstr "Remove “%(termino)s” from the filter"
+
+msgid ""
+"Recomendado: las reflexiones pueden contar casos reales con nombres o "
+"lugares que el filtro no detecta."
+msgstr ""
+"Recommended: reflections may describe real cases with names or places "
+"that the filter cannot detect."
+
+msgid "Reflexiones del foro"
+msgstr "Forum reflections"
+
+msgid "Reflexión"
+msgstr "Reflection"
+
+#, python-format
+msgid "Reflexión #%(id)s borrada."
+msgstr "Reflection #%(id)s deleted."
+
+#, python-format
+msgid ""
+"Reflexión #%(id)s publicada. Se verá en la pantalla en la próxima "
+"actualización."
+msgstr ""
+"Reflection #%(id)s published. It will appear on the screen at the next "
+"refresh."
+
+#, python-format
+msgid "Reflexión #%(id)s retirada de la pantalla."
+msgstr "Reflection #%(id)s removed from the screen."
+
+msgid ""
+"Reglas de privacidad: retienen lo que pueda identificar o localizar a "
+"alguien."
+msgstr ""
+"Privacy rules: they hold back anything that could identify or locate "
+"someone."
+
+msgid "Resumen"
+msgstr "Summary"
+
+msgid "Retener @usuarios de redes sociales"
+msgstr "Hold back social media @usernames"
+
+msgid "Retener correos electrónicos"
+msgstr "Hold back email addresses"
+
+msgid "Retener enlaces (www…, http…, .com)"
+msgstr "Hold back links (www…, http…, .com)"
+
+msgid "Retener números de teléfono"
+msgstr "Hold back phone numbers"
+
+msgid "Retirado"
+msgstr "Removed"
+
+#, python-format
+msgid "Retirado automáticamente al recibir %(num)s avisos"
+msgstr "Removed automatically after %(num)s reports"
+
+msgid "Retirado por moderación"
+msgstr "Removed by moderators"
+
+msgid "Retirar"
+msgstr "Remove"
+
+msgid "Retirar sola de la pantalla una publicación con muchos avisos"
+msgstr "Automatically remove a post with many reports from the screen"
+
+msgid "Rotación automática"
+msgstr "Automatic rotation"
+
+msgid "Saltar ahora"
+msgstr "Jump now"
+
+msgid "Se elimina definitivamente. Esta acción no se puede deshacer."
+msgstr "It will be permanently deleted. This cannot be undone."
+
+#, python-format
+msgid "Se ha retirado %(num)d publicación que ya estaba en pantalla."
+msgid_plural "Se han retirado %(num)d publicaciones que ya estaban en pantalla."
+msgstr[0] "%(num)d post that was already on screen has been removed."
+msgstr[1] "%(num)d posts that were already on screen have been removed."
+
+msgid "Se han enviado muchos avisos desde esta red. Espera unos minutos."
+msgstr ""
+"Too many reports have been sent from this network. Please wait a few "
+"minutes."
+
+msgid ""
+"Si has enviado una reflexión, aparecerá en la pantalla cuando se haya "
+"revisado."
+msgstr ""
+"If you sent a reflection, it will appear on the screen once it has been "
+"reviewed."
+
+msgid "Si tú o alguien que conoces necesita ayuda:"
+msgstr "If you or someone you know needs help:"
+
+msgid "Siguen en la pantalla hasta que decidas: los avisos no retiran nada solos."
+msgstr ""
+"They stay on the screen until you decide: reports do not remove anything "
+"on their own."
+
+msgid "Todavía no hay publicaciones."
+msgstr "No posts yet."
+
+msgid "Todo"
+msgstr "All"
+
+msgid "Tu mensaje"
+msgstr "Your message"
+
+msgid "Tu mensaje se ha enviado correctamente."
+msgstr "Your message has been sent."
+
+msgid "Tu reflexión"
+msgstr "Your reflection"
+
+msgid "Tu reflexión se mostrará tras ser revisada."
+msgstr "Your reflection will be shown once it has been reviewed."
+
+msgid "Término quitado del filtro."
+msgstr "Term removed from the filter."
+
+msgid "Términos en el filtro"
+msgstr "Terms in the filter"
+
+msgid "Título"
+msgstr "Title"
+
+msgid "Un mensaje corto que aparecerá en el mural de la pantalla."
+msgstr "A short message that will appear on the wall on the screen."
+
+msgid "Un título breve"
+msgstr "A short title"
+
+msgid "Ver menos"
+msgstr "Show less"
+
+msgid "Ver texto completo"
+msgstr "Show full text"
+
+msgid "Volver a la rotación automática"
+msgstr "Back to automatic rotation"
+
+msgid "Volver a publicar"
+msgstr "Publish again"
+
+msgid "Volver al formulario"
+msgstr "Back to the form"
+
+msgid "Vídeo"
+msgstr "Video"
+
+msgid "Web contra la violencia de género"
+msgstr "Website against gender-based violence"
+
+msgid "Ya está retirado de la pantalla."
+msgstr "It has already been removed from the screen."
+
+#, python-format
+msgid "hoy, %(hora)s"
+msgstr "today, %(hora)s"
+
+#, python-format
+msgid "mensaje %(id)s"
+msgstr "message %(id)s"
+
+#, python-format
+msgid "reflexión %(id)s"
+msgstr "reflection %(id)s"
+
+#, python-brace-format
+msgid "{n} aviso por revisar"
+msgstr "{n} report to review"
+
+#, python-brace-format
+msgid "{n} avisos por revisar"
+msgstr "{n} reports to review"
+
+#, python-brace-format
+msgid "{n} retenido por el filtro"
+msgstr "{n} held back by the filter"
+
+#, python-brace-format
+msgid "{n} retenidos por el filtro"
+msgstr "{n} held back by the filter"
+
+msgid "¡Gracias por participar!"
+msgstr "Thank you for taking part!"
+
+msgid "¡Gracias!"
+msgstr "Thank you!"
+
+msgid ""
+"«Saltar» cambia la vista una vez y sigue rotando desde ahí. «Fijar» la "
+"deja quieta hasta que vuelvas a la rotación. La pantalla obedece en unos "
+"segundos."
+msgstr ""
+"“Jump” switches the view once and keeps rotating from there. “Pin” keeps "
+"it on that view until you switch back to rotation. The screen follows "
+"within a few seconds."
+
+msgid "¿Borrar esta reflexión?"
+msgstr "Delete this reflection?"
+
+msgid "¿Borrar este mensaje?"
+msgstr "Delete this message?"
+
+msgid "¿Borrar?"
+msgstr "Delete?"
+
+msgid ""
+"¿Has visto en la pantalla un mensaje de odio, un insulto o datos de "
+"alguien?"
+msgstr ""
+"Have you seen a hateful message, an insult or someone’s personal details "
+"on the screen?"
+
+msgid "¿Has visto en la pantalla un mensaje inapropiado? Avísanos"
+msgstr "Seen an inappropriate message on the screen? Let us know"
+
+msgid "¿Qué le pasa a esta reflexión?"
+msgstr "What is wrong with this reflection?"
+
+msgid "¿Qué le pasa a este mensaje?"
+msgstr "What is wrong with this message?"
+

@@ -33,6 +33,7 @@ if [ ! -x .venv/bin/python ]; then
 fi
 .venv/bin/pip install --quiet --upgrade pip
 .venv/bin/pip install --quiet -r requirements.txt
+.venv/bin/pybabel compile -d traducciones >/dev/null   # idiomas (i18n): .po → .mo
 
 paso "Archivo .env (contraseñas)"
 if [ ! -f .env ]; then

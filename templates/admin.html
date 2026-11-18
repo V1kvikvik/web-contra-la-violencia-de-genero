@@ -15,6 +15,7 @@
   Sin JavaScript todo funciona; static/js/admin.js añade filtros, búsqueda, avisos de novedades
   y la confirmación antes de borrar.
 -#}
+{%- from '_idioma.html' import selector_idioma with context -%}
 {%- set avisados = elementos | selectattr('avisos') | list -%}
 {%- set retenidos = elementos | selectattr('estado', 'equalto', 'retenido') | list -%}
 {%- set publicados = elementos | rejectattr('estado', 'equalto', 'retenido') | list -%}
@@ -46,9 +47,9 @@
 {%- set nombres = {'mural': {'publicar': 'mostrar', 'ocultar': 'ocultar', 'borrar': 'borrar'},
                    'foro': {'publicar': 'aprobar', 'ocultar': 'retirar', 'borrar': 'borrar'}} -%}
 <form method="post" action="{{ url_for('admin_accion', tabla=e.tabla, id=e.id, accion=nombres[e.tabla][accion]) }}" class="adm-accion"
-      {%- if accion == 'borrar' %} data-confirmar="¿Borrar {{ 'este mensaje' if e.tabla == 'mural' else 'esta reflexión' }}?"{% endif %}>
+      {%- if accion == 'borrar' %} data-confirmar="{{ _('¿Borrar este mensaje?') if e.tabla == 'mural' else _('¿Borrar esta reflexión?') }}"{% endif %}>
   <input type="hidden" name="csrf" value="{{ csrf }}">
-  <button type="submit" class="adm-btn {{ clase }}" aria-label="{{ texto }}: {{ 'mensaje' if e.tabla == 'mural' else 'reflexión' }} {{ e.id }}">{{ icono(icono_n or accion) }}<span>{{ texto }}</span></button>
+  <button type="submit" class="adm-btn {{ clase }}" aria-label="{{ texto }}: {{ _('mensaje %(id)s', id=e.id) if e.tabla == 'mural' else _('reflexión %(id)s', id=e.id) }}">{{ icono(icono_n or accion) }}<span>{{ texto }}</span></button>
 </form>
 {%- endmacro -%}
 
@@ -58,35 +59,35 @@
     id="{{ seccion }}-{{ ref }}" data-tipo="{{ e.tabla }}" data-estado="{{ e.estado }}">
   <div class="adm-fila-cuerpo">
     <div class="adm-meta">
-      <span class="adm-tipo">{{ 'Mural' if e.tabla == 'mural' else 'Foro' }}</span>
-      {%- if e.estado == 'visible' %}<span class="adm-estado adm-estado-visible">En pantalla</span>
-      {%- elif e.estado == 'retenido' %}<span class="adm-estado adm-estado-retenido">Pendiente</span>
-      {%- else %}<span class="adm-estado adm-estado-oculto">Retirado</span>{% endif %}
+      <span class="adm-tipo">{{ _('Mural') if e.tabla == 'mural' else _('Foro') }}</span>
+      {%- if e.estado == 'visible' %}<span class="adm-estado adm-estado-visible">{{ _('En pantalla') }}</span>
+      {%- elif e.estado == 'retenido' %}<span class="adm-estado adm-estado-retenido">{{ _('Pendiente') }}</span>
+      {%- else %}<span class="adm-estado adm-estado-oculto">{{ _('Retirado') }}</span>{% endif %}
       <span class="adm-id">#{{ e.id }}</span>
       {%- if e.creado %}<span aria-hidden="true">·</span><time datetime="{{ e.creado }}">{{ e.creado | fecha }}</time>{% endif %}
     </div>
     {% if e.titulo %}<h3 class="adm-titulo">{{ e.titulo }}</h3>{% endif %}
     <p class="adm-texto{{ ' adm-recortado' if seccion == 'pub' and e.titulo }}">{{ e.texto }}</p>
     {%- if seccion == 'avisos' %}
-      <p class="adm-motivo adm-motivo-aviso">{{ icono('bandera') }}<span><b>{{ e.avisos }} {{ 'aviso' if e.avisos == 1 else 'avisos' }}:</b>
-        {% for texto, n in e.motivos_aviso %}{{ texto }}{% if n > 1 %} ({{ n }}){% endif %}{{ ' · ' if not loop.last }}{% endfor %}
-        {%- if e.estado == 'oculto' %}. Ya está retirado de la pantalla.{% endif %}</span></p>
+      <p class="adm-motivo adm-motivo-aviso">{{ icono('bandera') }}<span><b>{{ ngettext('%(num)d aviso:', '%(num)d avisos:', e.avisos) }}</b>
+        {% for texto, n in e.motivos_aviso %}{{ texto | motivo }}{% if n > 1 %} ({{ n }}){% endif %}{{ ' · ' if not loop.last }}{% endfor %}
+        {%- if e.estado == 'oculto' %}. {{ _('Ya está retirado de la pantalla.') }}{% endif %}</span></p>
     {%- elif seccion == 'retenidos' %}
-      <p class="adm-motivo">{{ icono('escudo') }}<span>{{ e.motivo }}</span></p>
+      <p class="adm-motivo">{{ icono('escudo') }}<span>{{ e.motivo | motivo }}</span></p>
     {%- elif e.estado == 'oculto' and e.motivo %}
-      <p class="adm-motivo adm-motivo-suave">{{ e.motivo }}</p>
+      <p class="adm-motivo adm-motivo-suave">{{ e.motivo | motivo }}</p>
     {%- endif %}
   </div>
   <div class="adm-acciones">
     {%- if seccion == 'avisos' %}
-      {{ boton(e, 'publicar', 'Mantener' if e.estado == 'visible' else 'Volver a publicar', '', 'mantener') }}
-      {{ boton(e, 'borrar', 'Borrar', 'adm-btn-peligro') }}
+      {{ boton(e, 'publicar', _('Mantener') if e.estado == 'visible' else _('Volver a publicar'), '', 'mantener') }}
+      {{ boton(e, 'borrar', _('Borrar'), 'adm-btn-peligro') }}
     {%- elif seccion == 'retenidos' %}
-      {{ boton(e, 'publicar', 'Aprobar' if e.tabla == 'foro' else 'Publicar igualmente') }}
-      {{ boton(e, 'borrar', 'Borrar', 'adm-btn-peligro') }}
+      {{ boton(e, 'publicar', _('Aprobar') if e.tabla == 'foro' else _('Publicar igualmente')) }}
+      {{ boton(e, 'borrar', _('Borrar'), 'adm-btn-peligro') }}
     {%- else %}
-      {%- if e.estado == 'visible' %}{{ boton(e, 'ocultar', 'Retirar') }}{% else %}{{ boton(e, 'publicar', 'Publicar') }}{% endif %}
-      {{ boton(e, 'borrar', 'Borrar', 'adm-btn-peligro') }}
+      {%- if e.estado == 'visible' %}{{ boton(e, 'ocultar', _('Retirar')) }}{% else %}{{ boton(e, 'publicar', _('Publicar')) }}{% endif %}
+      {{ boton(e, 'borrar', _('Borrar'), 'adm-btn-peligro') }}
     {%- endif %}
   </div>
 </li>
@@ -96,30 +97,44 @@
 <p class="adm-vacio">{{ icono('bandeja') }}{{ texto }}</p>
 {%- endmacro -%}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ idioma_actual }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1a0b2e">
   <meta name="robots" content="noindex, nofollow">
-  <title>{% if pendientes %}({{ pendientes }}) {% endif %}Moderación · 25N</title>
+  <title>{% if pendientes %}({{ pendientes }}) {% endif %}{{ _('Moderación') }} · 25N</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 </head>
 <body class="admin" data-avisos="{{ avisados | length }}" data-retenidos="{{ retenidos | length }}"
-      data-api-estado="{{ url_for('admin_estado') }}">
+      data-api-estado="{{ url_for('admin_estado') }}"
+      data-textos='{{ {
+        "actualizado": _("Actualizado a las {hora}"),
+        "cerrar_aviso": _("Cerrar aviso"),
+        "aviso_1": _("{n} aviso por revisar"),
+        "aviso_n": _("{n} avisos por revisar"),
+        "retenido_1": _("{n} retenido por el filtro"),
+        "retenido_n": _("{n} retenidos por el filtro"),
+        "novedades": _("Novedades ({hora}): {lista}."),
+        "titulo": _("Moderación"),
+        "ver_completo": _("Ver texto completo"),
+        "ver_menos": _("Ver menos"),
+        "no_deshacer": _("Esta acción no se puede deshacer."),
+      } | tojson }}'>
   <header class="adm-barra">
     <div class="adm-barra-in">
       <div class="adm-marca">
         <span class="adm-logo" aria-hidden="true">25N</span>
-        <div><strong>Moderación</strong><small>Web contra la violencia de género</small></div>
+        <div><strong>{{ _('Moderación') }}</strong><small>{{ _('Web contra la violencia de género') }}</small></div>
       </div>
       <div class="adm-barra-der">
+        {{ selector_idioma('adm-idioma') }}
         <span class="adm-hora" id="adm-hora" hidden></span>
-        <a class="adm-btn adm-btn-barra" href="{{ url_for('admin') }}">{{ icono('actualizar') }}<span>Actualizar</span></a>
+        <a class="adm-btn adm-btn-barra" href="{{ url_for('admin') }}">{{ icono('actualizar') }}<span>{{ _('Actualizar') }}</span></a>
       </div>
     </div>
     <div class="adm-novedades" id="adm-novedades" role="status" hidden>
-      <span id="adm-novedades-texto"></span> <a href="{{ url_for('admin') }}">Actualizar</a>
+      <span id="adm-novedades-texto"></span> <a href="{{ url_for('admin') }}">{{ _('Actualizar') }}</a>
     </div>
   </header>
 
@@ -129,17 +144,17 @@
         {{ icono('error' if aviso.tipo == 'error' else 'ok') }}<span>{{ aviso.texto }}</span></div>
     {% endif %}
 
-    <h1 class="solo-lectores">Panel de moderación</h1>
+    <h1 class="solo-lectores">{{ _('Panel de moderación') }}</h1>
 
-    <ul class="adm-resumen" aria-label="Resumen">
+    <ul class="adm-resumen" aria-label="{{ _('Resumen') }}">
       <li><a class="adm-dato {{ 'adm-dato-peligro' if avisados }}" href="#avisos">
-        <span class="adm-dato-num">{{ avisados | length }}</span><span class="adm-dato-txt">Avisos por revisar</span></a></li>
+        <span class="adm-dato-num">{{ avisados | length }}</span><span class="adm-dato-txt">{{ _('Avisos por revisar') }}</span></a></li>
       <li><a class="adm-dato {{ 'adm-dato-alerta' if retenidos }}" href="#retenidos">
-        <span class="adm-dato-num">{{ retenidos | length }}</span><span class="adm-dato-txt">Pendientes de revisar</span></a></li>
+        <span class="adm-dato-num">{{ retenidos | length }}</span><span class="adm-dato-txt">{{ _('Pendientes de revisar') }}</span></a></li>
       <li><a class="adm-dato" href="#publicado">
-        <span class="adm-dato-num">{{ en_pantalla | length }}</span><span class="adm-dato-txt">En pantalla</span></a></li>
+        <span class="adm-dato-num">{{ en_pantalla | length }}</span><span class="adm-dato-txt">{{ _('En pantalla') }}</span></a></li>
       <li><a class="adm-dato" href="#filtro">
-        <span class="adm-dato-num">{{ terminos | length }}</span><span class="adm-dato-txt">Términos en el filtro</span></a></li>
+        <span class="adm-dato-num">{{ terminos | length }}</span><span class="adm-dato-txt">{{ _('Términos en el filtro') }}</span></a></li>
     </ul>
 
     <div id="revision" class="adm-revision">
@@ -147,16 +162,16 @@
       <section id="avisos" class="adm-panel {{ 'adm-panel-peligro' if avisados }}" aria-labelledby="t-avisos">
         <header class="adm-panel-cab">
           <div>
-            <h2 id="t-avisos">{{ icono('bandera') }} Avisos del público <span class="adm-cuenta">{{ avisados | length }}</span></h2>
-            <p>Publicaciones que alguien ha marcado como inapropiadas.
-              {%- if ajustes.retirar_por_avisos == '1' %} Con {{ ajustes.avisos_para_ocultar }} {{ 'aviso' if ajustes.avisos_para_ocultar == '1' else 'avisos' }} se retiran solas de la pantalla hasta que decidas.
-              {%- else %} Siguen en la pantalla hasta que decidas: los avisos no retiran nada solos.{% endif %}</p>
+            <h2 id="t-avisos">{{ icono('bandera') }} {{ _('Avisos del público') }} <span class="adm-cuenta">{{ avisados | length }}</span></h2>
+            <p>{{ _('Publicaciones que alguien ha marcado como inapropiadas.') }}
+              {%- if ajustes.retirar_por_avisos == '1' %} {{ ngettext('Con %(num)d aviso se retiran solas de la pantalla hasta que decidas.', 'Con %(num)d avisos se retiran solas de la pantalla hasta que decidas.', ajustes.avisos_para_ocultar | int) }}
+              {%- else %} {{ _('Siguen en la pantalla hasta que decidas: los avisos no retiran nada solos.') }}{% endif %}</p>
           </div>
         </header>
         {% if avisados %}
           <ul class="adm-filas">{% for e in avisados %}{{ fila(e, 'avisos') }}{% endfor %}</ul>
         {% else %}
-          {{ vacio('No hay avisos pendientes.') }}
+          {{ vacio(_('No hay avisos pendientes.')) }}
         {% endif %}
       </section>
 
@@ -164,15 +179,15 @@
       <section id="retenidos" class="adm-panel {{ 'adm-panel-alerta' if retenidos }}" aria-labelledby="t-retenidos">
         <header class="adm-panel-cab">
           <div>
-            <h2 id="t-retenidos">{{ icono('escudo') }} Pendientes de revisar <span class="adm-cuenta">{{ retenidos | length }}</span></h2>
-            <p>No salen en la pantalla hasta que los apruebes.
-              {%- if ajustes.foro_manual == '1' %} Aquí esperan todas las reflexiones del foro y{% else %} Aquí está{% endif %} lo que ha parado el filtro.</p>
+            <h2 id="t-retenidos">{{ icono('escudo') }} {{ _('Pendientes de revisar') }} <span class="adm-cuenta">{{ retenidos | length }}</span></h2>
+            <p>{{ _('No salen en la pantalla hasta que los apruebes.') }}
+              {% if ajustes.foro_manual == '1' %}{{ _('Aquí esperan todas las reflexiones del foro y lo que ha parado el filtro.') }}{% else %}{{ _('Aquí está lo que ha parado el filtro.') }}{% endif %}</p>
           </div>
         </header>
         {% if retenidos %}
           <ul class="adm-filas">{% for e in retenidos %}{{ fila(e, 'retenidos') }}{% endfor %}</ul>
         {% else %}
-          {{ vacio('No hay nada pendiente.') }}
+          {{ vacio(_('No hay nada pendiente.')) }}
         {% endif %}
       </section>
     </div>
@@ -181,10 +196,10 @@
     <section id="control-pantalla" class="adm-panel" aria-labelledby="t-control">
       <header class="adm-panel-cab">
         <div>
-          <h2 id="t-control">Pantalla
-            {%- if control.fijada %} <span class="adm-estado adm-estado-retenido">Fijada en {{ vistas[control.fijada] }}</span>
-            {%- else %} <span class="adm-estado adm-estado-visible">Rotación automática</span>{% endif %}</h2>
-          <p>«Saltar» cambia la vista una vez y sigue rotando desde ahí. «Fijar» la deja quieta hasta que vuelvas a la rotación. La pantalla obedece en unos segundos.</p>
+          <h2 id="t-control">{{ _('Pantalla') }}
+            {%- if control.fijada %} <span class="adm-estado adm-estado-retenido">{{ _('Fijada en %(vista)s', vista=vistas[control.fijada]) }}</span>
+            {%- else %} <span class="adm-estado adm-estado-visible">{{ _('Rotación automática') }}</span>{% endif %}</h2>
+          <p>{{ _('«Saltar» cambia la vista una vez y sigue rotando desde ahí. «Fijar» la deja quieta hasta que vuelvas a la rotación. La pantalla obedece en unos segundos.') }}</p>
         </div>
       </header>
       <div class="adm-control">
@@ -192,14 +207,14 @@
           <div class="adm-control-vista{{ ' adm-control-fijada' if control.fijada == clave }}">
             <strong>{{ nombre }}</strong>
             <div class="adm-control-botones">
-              {% for accion, texto in [('saltar', 'Saltar ahora'), ('fijar', 'Fijar')] %}
+              {% for accion, texto in [('saltar', _('Saltar ahora')), ('fijar', _('Fijar'))] %}
                 <form method="post" action="{{ url_for('admin_pantalla') }}">
                   <input type="hidden" name="csrf" value="{{ csrf }}">
                   <input type="hidden" name="accion" value="{{ accion }}">
                   <input type="hidden" name="vista" value="{{ clave }}">
                   <button type="submit" class="adm-btn{{ ' adm-btn-principal' if accion == 'fijar' and control.fijada == clave }}"
                           aria-label="{{ texto }}: {{ nombre }}"
-                          {%- if accion == 'fijar' and control.fijada == clave %} aria-pressed="true" disabled{% endif %}>{{ 'Fijada' if accion == 'fijar' and control.fijada == clave else texto }}</button>
+                          {%- if accion == 'fijar' and control.fijada == clave %} aria-pressed="true" disabled{% endif %}>{{ _('Fijada') if accion == 'fijar' and control.fijada == clave else texto }}</button>
                 </form>
               {% endfor %}
             </div>
@@ -209,7 +224,7 @@
           <form method="post" action="{{ url_for('admin_pantalla') }}" class="adm-control-soltar">
             <input type="hidden" name="csrf" value="{{ csrf }}">
             <input type="hidden" name="accion" value="soltar">
-            <button type="submit" class="adm-btn adm-btn-principal">{{ icono('actualizar') }}<span>Volver a la rotación automática</span></button>
+            <button type="submit" class="adm-btn adm-btn-principal">{{ icono('actualizar') }}<span>{{ _('Volver a la rotación automática') }}</span></button>
           </form>
         {% endif %}
       </div>
@@ -219,20 +234,20 @@
     <section id="publicado" class="adm-panel" aria-labelledby="t-publicado">
       <header class="adm-panel-cab">
         <div>
-          <h2 id="t-publicado">Publicaciones <span class="adm-cuenta">{{ publicados | length }}</span></h2>
-          <p>Lo que está en la pantalla y lo retirado. «Retirar» lo quita en la siguiente actualización sin borrarlo.</p>
+          <h2 id="t-publicado">{{ _('Publicaciones') }} <span class="adm-cuenta">{{ publicados | length }}</span></h2>
+          <p>{{ _('Lo que está en la pantalla y lo retirado. «Retirar» lo quita en la siguiente actualización sin borrarlo.') }}</p>
         </div>
         {% if publicados %}
         <div class="adm-herramientas" id="herramientas-pub" hidden>
-          <div class="adm-segmentos" role="group" aria-label="Filtrar publicaciones">
-            <button type="button" data-filtro="todo" aria-pressed="true">Todo</button>
-            <button type="button" data-filtro="mural" aria-pressed="false">Mural</button>
-            <button type="button" data-filtro="foro" aria-pressed="false">Foro</button>
-            <button type="button" data-filtro="oculto" aria-pressed="false">Retirado <span>{{ retirados | length }}</span></button>
+          <div class="adm-segmentos" role="group" aria-label="{{ _('Filtrar publicaciones') }}">
+            <button type="button" data-filtro="todo" aria-pressed="true">{{ _('Todo') }}</button>
+            <button type="button" data-filtro="mural" aria-pressed="false">{{ _('Mural') }}</button>
+            <button type="button" data-filtro="foro" aria-pressed="false">{{ _('Foro') }}</button>
+            <button type="button" data-filtro="oculto" aria-pressed="false">{{ _('Retirado') }} <span>{{ retirados | length }}</span></button>
           </div>
           <label class="adm-buscar">
-            <span class="solo-lectores">Buscar en las publicaciones</span>{{ icono('buscar') }}
-            <input type="search" id="buscar-pub" placeholder="Buscar texto…" autocomplete="off">
+            <span class="solo-lectores">{{ _('Buscar en las publicaciones') }}</span>{{ icono('buscar') }}
+            <input type="search" id="buscar-pub" placeholder="{{ _('Buscar texto…') }}" autocomplete="off">
           </label>
         </div>
         {% endif %}
@@ -240,10 +255,10 @@
       {% if publicados %}
         <ul class="adm-filas" id="lista-pub">
           {% for e in publicados %}{{ fila(e, 'pub') }}{% endfor %}
-          <li class="adm-sin-resultados" hidden>Nada coincide con el filtro.</li>
+          <li class="adm-sin-resultados" hidden>{{ _('Nada coincide con el filtro.') }}</li>
         </ul>
       {% else %}
-        {{ vacio('Todavía no hay publicaciones.') }}
+        {{ vacio(_('Todavía no hay publicaciones.')) }}
       {% endif %}
     </section>
 
@@ -251,29 +266,29 @@
     <section id="filtro" class="adm-panel" aria-labelledby="t-filtro">
       <header class="adm-panel-cab">
         <div>
-          <h2 id="t-filtro">Filtro automático</h2>
-          <p>{{ 'Los mensajes del mural' if ajustes.foro_manual == '1' else 'Los mensajes y las reflexiones' }} se publican solos, salvo lo que coincide con estas palabras o reglas: eso queda pendiente para que decidas.</p>
+          <h2 id="t-filtro">{{ _('Filtro automático') }}</h2>
+          <p>{{ _('Los mensajes del mural se publican solos, salvo lo que coincide con estas palabras o reglas: eso queda pendiente para que decidas.') if ajustes.foro_manual == '1' else _('Los mensajes y las reflexiones se publican solos, salvo lo que coincide con estas palabras o reglas: eso queda pendiente para que decidas.') }}</p>
         </div>
       </header>
       <div class="adm-filtro">
         <div class="adm-bloque">
-          <h3>Palabras y expresiones <span class="adm-cuenta">{{ terminos | length }}</span></h3>
+          <h3>{{ _('Palabras y expresiones') }} <span class="adm-cuenta">{{ terminos | length }}</span></h3>
           <form method="post" action="{{ url_for('admin_filtro_anadir') }}" class="adm-anadir">
             <input type="hidden" name="csrf" value="{{ csrf }}">
-            <label class="solo-lectores" for="nuevo-termino">Palabra o expresión para filtrar</label>
+            <label class="solo-lectores" for="nuevo-termino">{{ _('Palabra o expresión para filtrar') }}</label>
             <input id="nuevo-termino" name="termino" type="text" required maxlength="61" autocomplete="off"
-                   autocapitalize="off" spellcheck="false" placeholder="Palabra o expresión">
-            <button type="submit" class="adm-btn adm-btn-principal">{{ icono('mas') }}<span>Añadir</span></button>
+                   autocapitalize="off" spellcheck="false" placeholder="{{ _('Palabra o expresión') }}">
+            <button type="submit" class="adm-btn adm-btn-principal">{{ icono('mas') }}<span>{{ _('Añadir') }}</span></button>
           </form>
           <p class="adm-ayuda">
-            No hace falta escribir tildes, plurales ni trucos: <b>zorra</b> ya cubre «ZORRAS», «z0rra» o «z.o.r.r.a».
-            Con <b>*</b> al final cubre todo lo que empiece igual (<b>maric*</b>).
-            Al añadir un término también se retira lo que ya esté en pantalla y lo contenga.
+            {{ _('No hace falta escribir tildes, plurales ni trucos: %(ejemplo)s ya cubre «ZORRAS», «z0rra» o «z.o.r.r.a».', ejemplo='<b>zorra</b>'|safe) }}
+            {{ _('Con %(asterisco)s al final cubre todo lo que empiece igual (%(ejemplo)s).', asterisco='<b>*</b>'|safe, ejemplo='<b>maric*</b>'|safe) }}
+            {{ _('Al añadir un término también se retira lo que ya esté en pantalla y lo contenga.') }}
           </p>
           {% if terminos | length > 12 %}
           <label class="adm-buscar adm-buscar-filtro" hidden>
-            <span class="solo-lectores">Buscar en el filtro</span>{{ icono('buscar') }}
-            <input type="search" id="buscar-filtro" placeholder="Buscar en el filtro…" autocomplete="off">
+            <span class="solo-lectores">{{ _('Buscar en el filtro') }}</span>{{ icono('buscar') }}
+            <input type="search" id="buscar-filtro" placeholder="{{ _('Buscar en el filtro…') }}" autocomplete="off">
           </label>
           {% endif %}
           {% if terminos %}
@@ -283,45 +298,45 @@
                 <span>{{ t.termino }}</span>
                 <form method="post" action="{{ url_for('admin_filtro_quitar', id=t.id) }}">
                   <input type="hidden" name="csrf" value="{{ csrf }}">
-                  <button type="submit" class="adm-chip-quitar" aria-label="Quitar «{{ t.termino }}» del filtro" title="Quitar del filtro">×</button>
+                  <button type="submit" class="adm-chip-quitar" aria-label="{{ _('Quitar «%(termino)s» del filtro', termino=t.termino) }}" title="{{ _('Quitar del filtro') }}">×</button>
                 </form>
               </li>
             {% endfor %}
             </ul>
           {% else %}
-            {{ vacio('El filtro de palabras está vacío.') }}
+            {{ vacio(_('El filtro de palabras está vacío.')) }}
           {% endif %}
         </div>
 
         <form class="adm-bloque adm-reglas" method="post" action="{{ url_for('admin_ajustes') }}">
           <input type="hidden" name="csrf" value="{{ csrf }}">
-          <h3>Ajustes</h3>
+          <h3>{{ _('Ajustes') }}</h3>
           <label class="adm-check">
             <input type="checkbox" name="foro_manual" value="1" {{ 'checked' if ajustes.foro_manual == '1' }}>
-            <span>Aprobar a mano todas las reflexiones del foro</span>
+            <span>{{ _('Aprobar a mano todas las reflexiones del foro') }}</span>
           </label>
-          <p class="adm-ayuda">Recomendado: las reflexiones pueden contar casos reales con nombres o lugares que el filtro no detecta.</p>
+          <p class="adm-ayuda">{{ _('Recomendado: las reflexiones pueden contar casos reales con nombres o lugares que el filtro no detecta.') }}</p>
 
-          <p class="adm-ayuda">Reglas de privacidad: retienen lo que pueda identificar o localizar a alguien.</p>
-          {% for clave, texto in [('enlaces', 'enlaces (www…, http…, .com)'), ('correos', 'correos electrónicos'),
-                                  ('telefonos', 'números de teléfono'), ('usuarios', '@usuarios de redes sociales')] %}
+          <p class="adm-ayuda">{{ _('Reglas de privacidad: retienen lo que pueda identificar o localizar a alguien.') }}</p>
+          {% for clave, texto in [('enlaces', _('Retener enlaces (www…, http…, .com)')), ('correos', _('Retener correos electrónicos')),
+                                  ('telefonos', _('Retener números de teléfono')), ('usuarios', _('Retener @usuarios de redes sociales'))] %}
             <label class="adm-check">
               <input type="checkbox" name="{{ clave }}" value="1" {{ 'checked' if ajustes[clave] == '1' }}>
-              <span>Retener {{ texto }}</span>
+              <span>{{ texto }}</span>
             </label>
           {% endfor %}
 
-          <p class="adm-ayuda">Avisos del público: por defecto solo marcan la publicación aquí, en «Avisos del público».</p>
+          <p class="adm-ayuda">{{ _('Avisos del público: por defecto solo marcan la publicación aquí, en «Avisos del público».') }}</p>
           <label class="adm-check">
             <input type="checkbox" name="retirar_por_avisos" value="1" {{ 'checked' if ajustes.retirar_por_avisos == '1' }}>
-            <span>Retirar sola de la pantalla una publicación con muchos avisos</span>
+            <span>{{ _('Retirar sola de la pantalla una publicación con muchos avisos') }}</span>
           </label>
           <label class="adm-numero">
-            <span>Cuántos avisos:</span>
+            <span>{{ _('Cuántos avisos:') }}</span>
             <input type="number" name="avisos_para_ocultar" min="1" max="50" inputmode="numeric" required value="{{ ajustes.avisos_para_ocultar }}">
           </label>
-          <p class="adm-ayuda">Mejor dejarlo apagado: una sola persona podría vaciar la pantalla enviando avisos. Lo retirado así no se borra: espera a que decidas.</p>
-          <button type="submit" class="adm-btn adm-btn-principal">Guardar ajustes</button>
+          <p class="adm-ayuda">{{ _('Mejor dejarlo apagado: una sola persona podría vaciar la pantalla enviando avisos. Lo retirado así no se borra: espera a que decidas.') }}</p>
+          <button type="submit" class="adm-btn adm-btn-principal">{{ _('Guardar ajustes') }}</button>
         </form>
       </div>
     </section>
@@ -329,12 +344,12 @@
 
   <dialog class="adm-dialogo" id="adm-confirmar" aria-labelledby="adm-confirmar-titulo">
     <form method="dialog">
-      <h2 id="adm-confirmar-titulo">¿Borrar?</h2>
+      <h2 id="adm-confirmar-titulo">{{ _('¿Borrar?') }}</h2>
       <p class="adm-dialogo-cita" id="adm-confirmar-cita"></p>
-      <p class="adm-dialogo-nota">Se elimina definitivamente. Esta acción no se puede deshacer.</p>
+      <p class="adm-dialogo-nota">{{ _('Se elimina definitivamente. Esta acción no se puede deshacer.') }}</p>
       <div class="adm-dialogo-botones">
-        <button type="submit" value="no" class="adm-btn" autofocus>Cancelar</button>
-        <button type="submit" value="si" class="adm-btn adm-btn-peligro-lleno">{{ icono('borrar') }}<span>Borrar</span></button>
+        <button type="submit" value="no" class="adm-btn" autofocus>{{ _('Cancelar') }}</button>
+        <button type="submit" value="si" class="adm-btn adm-btn-peligro-lleno">{{ icono('borrar') }}<span>{{ _('Borrar') }}</span></button>
       </div>
     </form>
   </dialog>
