@@ -4,7 +4,7 @@
  * (solo faltan los filtros, la búsqueda y la confirmación antes de borrar).
  *
  *  - Hora de la última carga y aviso de la última acción (se cierra solo).
- *  - Cada 30 s pregunta a /admin/estado si hay elementos pendientes nuevos y lo indica
+ *  - Cada 30 s pregunta a /admin/estado si hay avisos o retenidos nuevos y lo indica
  *    sin recargar (así no se pierde lo que se esté escribiendo).
  *  - Filtro (Todo / Mural / Foro / Retirado) y búsqueda en las publicaciones y en el filtro.
  *  - «Ver texto completo» en reflexiones largas.
@@ -54,18 +54,28 @@
 
   // ---------- Novedades mientras el panel está abierto ----------
   var urlEstado = document.body.dataset.apiEstado;
-  var inicial = Number(document.body.dataset.retenidos) || 0;
+  var inicial = {
+    avisos: Number(document.body.dataset.avisos) || 0,
+    retenidos: Number(document.body.dataset.retenidos) || 0
+  };
   var novedades = document.getElementById('adm-novedades');
   var comprobar = function () {
     fetch(urlEstado, { cache: 'no-store', credentials: 'same-origin' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) {
-        if (!d || !(d.retenidos > inicial)) return;
+        if (!d) return;
+        var partes = [];
+        if (d.avisos > inicial.avisos) {
+          partes.push(d.avisos + (d.avisos === 1 ? ' aviso' : ' avisos') + ' por revisar');
+        }
+        if (d.retenidos > inicial.retenidos) {
+          partes.push(d.retenidos + (d.retenidos === 1 ? ' retenido' : ' retenidos') + ' por el filtro');
+        }
+        if (!partes.length) return;
         document.getElementById('adm-novedades-texto').textContent =
-          'Novedades (' + ahora() + '): ' + d.retenidos +
-          (d.retenidos === 1 ? ' pendiente' : ' pendientes') + ' de revisar.';
+          'Novedades (' + ahora() + '): ' + partes.join(' · ') + '.';
         novedades.hidden = false;
-        document.title = '(' + d.retenidos + ') Moderación · 25N';
+        document.title = '(' + (d.avisos + d.retenidos) + ') Moderación · 25N';
       })
       .catch(function () {});
   };

@@ -1,0 +1,86 @@
+{# T03 — Avisar de un mensaje inapropiado (GET /avisar, público, sin contraseña).
+   Lista lo que está ahora en la pantalla (lo mismo que dan /api/mural y /api/foro) con un
+   botón «Avisar» que lleva a avisar_elemento.html. Lo pinta pagina_avisar() en app.py.
+   Variables: mensajes, reflexiones, enviado (True tras enviar un aviso), retirada_automatica
+   (ajuste retirar_por_avisos del panel) y error_message (opcional).
+   Usa participa.css (mismo aspecto que el formulario) y avisar.css. #}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4a1a6b">
+  <meta name="robots" content="noindex">
+  <title>Avisar de un mensaje · 25N</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/participa.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/avisar.css') }}">
+</head>
+<body>
+  <header class="cabecera">
+    <h1>Avisar de un mensaje</h1>
+    <p>25N · Día Internacional para la Eliminación de la Violencia contra la Mujer</p>
+  </header>
+
+  <main class="contenido">
+    {% if error_message %}
+    <p class="error" role="alert">{{ error_message }}</p>
+    {% elif enviado %}
+    <p class="aviso aviso-ok" role="status">
+      <strong>Gracias por avisar.</strong>
+      Moderación lo revisará{% if retirada_automatica %}. Si varias personas avisan del mismo mensaje,
+      se retira de la pantalla enseguida, antes incluso de que lo revisen{% else %} y, si es inapropiado,
+      lo quitará de la pantalla{% endif %}.
+    </p>
+    {% endif %}
+
+    <p class="explicacion-avisar">
+      ¿Has visto en la pantalla un mensaje de odio, un insulto o datos de alguien?
+      Búscalo aquí y pulsa <strong>Avisar</strong>. Es anónimo.
+    </p>
+
+    <label class="buscar-avisar">
+      <span>Buscar</span>
+      <input type="search" id="buscar-avisar" placeholder="Escribe una palabra del mensaje" autocomplete="off">
+    </label>
+
+    <h2 class="avisar-seccion">Mensajes del mural <span>{{ mensajes | length }}</span></h2>
+    {% if mensajes %}
+      <ul class="lista-avisar">
+      {% for m in mensajes %}
+        <li class="publicacion">
+          <p class="publicacion-texto">{{ m.texto }}</p>
+          <a class="boton-avisar" href="{{ url_for('avisar_elemento', tabla='mural', id=m.id) }}"
+             aria-label="Avisar del mensaje {{ m.id }}">Avisar</a>
+        </li>
+      {% endfor %}
+      </ul>
+    {% else %}
+      <p class="vacio-avisar">No hay mensajes en la pantalla.</p>
+    {% endif %}
+
+    <h2 class="avisar-seccion">Reflexiones del foro <span>{{ reflexiones | length }}</span></h2>
+    {% if reflexiones %}
+      <ul class="lista-avisar">
+      {% for r in reflexiones %}
+        <li class="publicacion">
+          <p class="publicacion-texto"><strong>{{ r.titulo }}</strong>{{ r.texto | truncate(160) }}</p>
+          <a class="boton-avisar" href="{{ url_for('avisar_elemento', tabla='foro', id=r.id) }}"
+             aria-label="Avisar de la reflexión {{ r.id }}">Avisar</a>
+        </li>
+      {% endfor %}
+      </ul>
+    {% else %}
+      <p class="vacio-avisar">No hay reflexiones en la pantalla.</p>
+    {% endif %}
+    <p class="vacio-avisar" id="sin-resultados" hidden>Nada coincide con la búsqueda.</p>
+
+    <a class="boton boton-secundario" href="{{ url_for('participa') }}">Volver al formulario</a>
+    <p class="nota">Si tú o alguien que conoces necesita ayuda: <strong>016</strong>
+      (gratuito, 24 horas, no deja rastro en la factura).</p>
+  </main>
+
+  <footer class="pie">#25N · Juntas contra la violencia de género</footer>
+
+  <script src="{{ url_for('static', filename='js/avisar.js') }}"></script>
+</body>
+</html>

@@ -4,7 +4,7 @@ Responsables:
 - T01: creación de la app, init de la BD, POST /mural, POST /foro, /participa, /gracias
 - T02: decorador de HTTP Basic Auth, GET /api/mural, GET /api/foro, GET /pantalla
 - T03: GET /admin y POST /admin/<tabla>/<id>/<accion>, más el filtro automático
-       (/admin/filtros, /admin/ajustes)
+       (/admin/filtros, /admin/ajustes) y los avisos del público (/avisar)
 
 Toda la base de datos se usa a través de `bd.db` (no escribir SQL aquí).
 """
@@ -13,6 +13,10 @@ import hashlib
 import hmac
 import os
 import re
+import secrets
+import threading
+import time
+from collections import defaultdict, deque
 from datetime import datetime, timezone
 from functools import wraps
 
@@ -74,10 +78,9 @@ def requiere_rol(*roles):
 
 
 # --- T03: moderación ----------------------------------------------------------
-# Los mensajes del mural se publican solos salvo lo que retiene el filtro automático
-# (bd/filtro.py); las reflexiones del foro esperan aprobación (ajuste foro_manual).
-# El panel muestra lo pendiente, gestiona la lista de palabras y las reglas, y puede
-# retirar o borrar cualquier cosa.
+# La moderación no aprueba uno por uno: el filtro automático (bd/filtro.py) decide qué
+# se publica. El panel muestra lo que el filtro ha retenido y lo que el público ha
+# avisado, gestiona la lista de palabras y las reglas, y puede retirar o borrar cualquier cosa.
 
 def _token_csrf():
     """Token que llevan todos los formularios del panel.
@@ -176,6 +179,26 @@ def _fecha(valor):
     if local.date() == datetime.now(timezone.utc).astimezone(zona).date():
         return "hoy, " + local.strftime("%H:%M")
     return local.strftime("%d/%m/%Y %H:%M")
+
+
+class Limitador:
+    """Cuántas peticiones se permiten por IP en una ventana de tiempo (en memoria, por proceso)."""
+
+    def __init__(self, maximo, segundos):
+        self.maximo, self.segundos = maximo, segundos
+        self._marcas = defaultdict(deque)
+        self._cerrojo = threading.Lock()
+
+    def permitir(self, clave):
+        ahora = time.monotonic()
+        with self._cerrojo:
+            marcas = self._marcas[clave]
+            while marcas and ahora - marcas[0] > self.segundos:
+                marcas.popleft()
+            if len(marcas) >= self.maximo:
+                return False
+            marcas.append(ahora)
+            return True
 
 
 def create_app():
@@ -295,7 +318,7 @@ def create_app():
     @app.get("/admin/estado")
     @requiere_rol("admin")
     def admin_estado():
-        """Contadores en JSON: el panel avisa si llegan elementos pendientes nuevos."""
+        """Contadores en JSON: el panel avisa si llegan avisos o retenidos nuevos."""
         return jsonify(db.contadores())
 
     @app.post("/admin/<tabla>/<int:id>/<accion>")
@@ -329,9 +352,64 @@ def create_app():
     def admin_ajustes():
         _comprobar_csrf()
         nuevos = {regla: "1" if request.form.get(regla) == "1" else "0"
-                  for regla in ("enlaces", "correos", "telefonos", "usuarios", "foro_manual")}
+                  for regla in ("enlaces", "correos", "telefonos", "usuarios", "foro_manual",
+                                "retirar_por_avisos")}
+        umbral = request.form.get("avisos_para_ocultar", "")
+        if umbral.isdigit() and 1 <= int(umbral) <= 50:
+            nuevos["avisos_para_ocultar"] = str(int(umbral))
         db.guardar_ajustes(nuevos)
         return _volver_al_panel("ajustes", "guardados", 0, db.revisar_publicados())
+
+    # --- T03: avisos del público (sin contraseña) ---------------------------
+    # Quien vea en la pantalla algo inapropiado lo busca en /avisar y lo marca: aparece en
+    # «Avisos del público» del panel. Solo se retira solo si se activa en el panel
+    # (ajuste retirar_por_avisos, apagado por defecto).
+
+    # Como mucho 60 avisos cada 10 minutos desde una misma IP (en un instituto
+    # muchos móviles salen por la misma IP, por eso no es más bajo).
+    limite_avisos = Limitador(60, 600)
+
+    def pagina_avisar(error_message=None, codigo=200):
+        return render_template(
+            "avisar.html",
+            mensajes=db.listar_mural(solo_visibles=True, limite=30),
+            reflexiones=db.listar_foro(solo_aprobadas=True),
+            enviado=request.args.get("enviado") == "1",
+            retirada_automatica=db.leer_ajustes()["retirar_por_avisos"] == "1",
+            error_message=error_message,
+        ), codigo
+
+    def huella_avisador(resp):
+        """Cookie anónima para que un mismo móvil no cuente dos veces. Se guarda solo su hash."""
+        valor = request.cookies.get("avisador", "")
+        if len(valor) != 32 or not valor.isalnum():
+            valor = secrets.token_hex(16)
+            resp.set_cookie("avisador", valor, max_age=365 * 24 * 3600, path=url_for("inicio"),
+                            httponly=True, samesite="Lax", secure=request.is_secure)
+        return hashlib.sha256(valor.encode("utf-8")).hexdigest()
+
+    @app.get("/avisar")
+    def avisar():
+        return pagina_avisar()
+
+    @app.route("/avisar/<tabla>/<int:id>", methods=["GET", "POST"])
+    def avisar_elemento(tabla, id):
+        item = db.elemento_publico(tabla, id)
+        if item is None:
+            return pagina_avisar("Ese mensaje ya no está en la pantalla.", 404)
+        if request.method == "GET":
+            resp = Response(render_template("avisar_elemento.html", item=item, motivos=db.MOTIVOS_AVISO))
+            huella_avisador(resp)
+            return resp
+        if not limite_avisos.permitir(request.remote_addr or "?"):
+            return pagina_avisar("Se han enviado muchos avisos desde esta red. Espera unos minutos.", 429)
+        motivo = request.form.get("motivo", "")
+        if motivo not in db.MOTIVOS_AVISO:
+            return render_template("avisar_elemento.html", item=item, motivos=db.MOTIVOS_AVISO,
+                                   error_message="Elige un motivo."), 400
+        resp = redirect(url_for("avisar", enviado=1), code=303)
+        db.registrar_aviso(tabla, id, motivo, huella_avisador(resp))
+        return resp
 
     return app
 

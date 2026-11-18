@@ -1,0 +1,48 @@
+{# T03 — Elegir el motivo del aviso (GET y POST /avisar/<tabla>/<id>, público).
+   Variables: item {tabla: 'mural'|'foro', id, titulo, texto}, motivos {clave: texto}
+   (db.MOTIVOS_AVISO) y error_message (opcional). Al enviar vuelve a /avisar?enviado=1. #}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4a1a6b">
+  <meta name="robots" content="noindex">
+  <title>Avisar de un mensaje · 25N</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/participa.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/avisar.css') }}">
+</head>
+<body>
+  <header class="cabecera">
+    <h1>Avisar de un mensaje</h1>
+    <p>25N · Día Internacional para la Eliminación de la Violencia contra la Mujer</p>
+  </header>
+
+  <main class="contenido">
+    {% if error_message %}
+    <p class="error" role="alert">{{ error_message }}</p>
+    {% endif %}
+
+    <form class="formulario" method="POST" action="{{ url_for('avisar_elemento', tabla=item.tabla, id=item.id) }}">
+      <h2>¿Qué le pasa a {{ 'este mensaje' if item.tabla == 'mural' else 'esta reflexión' }}?</h2>
+      <blockquote class="cita-avisar">{% if item.titulo %}<strong>{{ item.titulo }}</strong>{% endif %}{{ item.texto }}</blockquote>
+
+      <fieldset class="motivos">
+        <legend>Motivo</legend>
+        {% for clave, texto in motivos.items() %}
+          <label class="motivo">
+            <input type="radio" name="motivo" value="{{ clave }}" required>
+            <span>{{ texto }}</span>
+          </label>
+        {% endfor %}
+      </fieldset>
+
+      <button type="submit" class="boton">Enviar aviso</button>
+      <p class="nota">Es anónimo. Moderación lo revisará y, si es inapropiado, lo borrará.</p>
+    </form>
+    <a class="boton boton-secundario" href="{{ url_for('avisar') }}">Cancelar</a>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/avisar.js') }}"></script>
+</body>
+</html>

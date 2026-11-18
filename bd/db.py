@@ -49,7 +49,7 @@ _ACCIONES = {
     },
 }
 
-# --- T03: filtro automático -------------------------------------------------
+# --- T03: filtro automático y avisos -----------------------------------------
 AJUSTES_POR_DEFECTO = {
     "enlaces": "1",              # retener lo que lleve enlaces
     "correos": "1",              # ... correos electrónicos
@@ -59,11 +59,22 @@ AJUSTES_POR_DEFECTO = {
     # por defecto no salen hasta que moderación las lee y las aprueba. Relajarlo es una
     # decisión del equipo, desde el panel.
     "foro_manual": "1",
+    # Los avisos del público solo marcan el elemento en el panel. Retirarlo solo al llegar a
+    # N avisos es opcional y va apagado: la cookie anónima se puede saltar y una sola persona
+    # podría vaciar la pantalla.
+    "retirar_por_avisos": "0",
+    "avisos_para_ocultar": "2",  # N, si se activa retirar_por_avisos
+}
+MOTIVOS_AVISO = {
+    "odio": "Odio o discriminación",
+    "acoso": "Insultos, acoso o amenazas",
+    "datos": "Nombres o datos personales",
+    "otro": "Otro motivo",
 }
 MOTIVO_PENDIENTE = "Pendiente de aprobación"
 
 
-# SQL fijo por tabla para el filtro y el panel. "publicado" es visible (mural) o aprobado (foro).
+# SQL fijo por tabla para el filtro y los avisos. "publicado" es visible (mural) o aprobado (foro).
 _SQL = {
     "mural": {
         "info": "PRAGMA table_info(mural)",
@@ -75,8 +86,10 @@ _SQL = {
         },
         "panel": ("SELECT id, NULL AS titulo, texto, creado, visible AS publicado, retenido, motivo "
                   "FROM mural"),
+        "publico": "SELECT id, NULL AS titulo, texto FROM mural WHERE id = ? AND visible = 1",
         "revisar": "SELECT id, '' AS titulo, texto FROM mural WHERE visible = 1 AND revisado = 0",
         "retener": "UPDATE mural SET visible = 0, retenido = 1, motivo = ? WHERE id = ? AND visible = 1",
+        "retirar_por_avisos": "UPDATE mural SET visible = 0, retenido = 0, motivo = ? WHERE id = ? AND visible = 1",
     },
     "foro": {
         "info": "PRAGMA table_info(foro)",
@@ -88,8 +101,10 @@ _SQL = {
         },
         "panel": ("SELECT id, titulo, texto, creado, aprobado AS publicado, retenido, motivo "
                   "FROM foro"),
+        "publico": "SELECT id, titulo, texto FROM foro WHERE id = ? AND aprobado = 1",
         "revisar": "SELECT id, titulo, texto FROM foro WHERE aprobado = 1 AND revisado = 0",
         "retener": "UPDATE foro SET aprobado = 0, retenido = 1, motivo = ? WHERE id = ? AND aprobado = 1",
+        "retirar_por_avisos": "UPDATE foro SET aprobado = 0, retenido = 0, motivo = ? WHERE id = ? AND aprobado = 1",
     },
 }
 TABLAS = tuple(_SQL)
@@ -234,6 +249,7 @@ def aplicar_accion(tabla, id_, accion):
     """Aplica una acción de moderación. Devuelve True si cambió alguna fila.
 
     Lanza ValueError si la tabla o la acción no están en la lista permitida.
+    Cualquier decisión de moderación cierra los avisos pendientes de ese elemento.
     """
     try:
         sql = _ACCIONES[tabla][accion]
@@ -243,6 +259,7 @@ def aplicar_accion(tabla, id_, accion):
     try:
         with con:
             cambiadas = con.execute(sql, (int(id_),)).rowcount
+            con.execute("DELETE FROM avisos WHERE tabla = ? AND elemento_id = ?", (tabla, int(id_)))
         return cambiadas > 0
     finally:
         con.close()
@@ -267,6 +284,11 @@ def guardar_ajustes(nuevos):
                                 "ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor", (clave, str(valor)))
     finally:
         con.close()
+
+
+def umbral_avisos():
+    valor = leer_ajustes()["avisos_para_ocultar"]
+    return max(1, int(valor)) if valor.isdigit() else int(AJUSTES_POR_DEFECTO["avisos_para_ocultar"])
 
 
 def listar_filtros():
@@ -318,24 +340,68 @@ def revisar_publicados():
     return retirados
 
 
+# --- T03: avisos del público -------------------------------------------------
+
+def elemento_publico(tabla, id_):
+    """El mensaje o la reflexión si está en pantalla; si no, None."""
+    if tabla not in _SQL:
+        return None
+    filas = _consultar(_SQL[tabla]["publico"], (int(id_),))
+    return dict(filas[0], tabla=tabla) if filas else None
+
+
+def registrar_aviso(tabla, id_, motivo, avisador):
+    """Guarda un aviso. Solo si está activado el ajuste retirar_por_avisos y se llega al
+    umbral, retira el elemento de la pantalla; si no, solo queda marcado en el panel.
+    Devuelve 'nuevo', 'repetido' o 'no_visible'."""
+    if motivo not in MOTIVOS_AVISO or elemento_publico(tabla, id_) is None:
+        return "no_visible"
+    retirar = leer_ajustes()["retirar_por_avisos"] == "1"
+    umbral = umbral_avisos()
+    con = get_conexion()
+    try:
+        with con:
+            cur = con.execute("INSERT OR IGNORE INTO avisos (tabla, elemento_id, motivo, avisador) "
+                              "VALUES (?, ?, ?, ?)", (tabla, int(id_), motivo, avisador))
+            if cur.rowcount == 0:
+                return "repetido"
+            total = con.execute("SELECT COUNT(*) FROM avisos WHERE tabla = ? AND elemento_id = ?",
+                                (tabla, int(id_))).fetchone()[0]
+            if retirar and total >= umbral:
+                con.execute(_SQL[tabla]["retirar_por_avisos"],
+                            ("Retirado automáticamente al recibir %d avisos" % total, int(id_)))
+        return "nuevo"
+    finally:
+        con.close()
+
+
 # --- T03: datos del panel ----------------------------------------------------
 
 def listar_para_panel():
-    """Mural y foro juntos, más recientes primero, con su estado:
-    {tabla, id, titulo, texto, creado, estado ('visible'|'retenido'|'oculto'), motivo}"""
+    """Mural y foro juntos, más recientes primero, con su estado y sus avisos:
+    {tabla, id, titulo, texto, creado, estado ('visible'|'retenido'|'oculto'), motivo,
+     avisos, motivos_aviso [(texto, n), ...]}"""
+    avisos = {}
+    for f in _consultar("SELECT tabla, elemento_id, motivo, COUNT(*) AS n FROM avisos "
+                        "GROUP BY tabla, elemento_id, motivo"):
+        avisos.setdefault((f["tabla"], f["elemento_id"]), []).append((MOTIVOS_AVISO.get(f["motivo"], f["motivo"]), f["n"]))
     elementos = []
     for tabla in TABLAS:
         for e in _consultar(_SQL[tabla]["panel"]):
             e["tabla"] = tabla
             e["estado"] = "visible" if e["publicado"] else ("retenido" if e["retenido"] else "oculto")
+            motivos = sorted(avisos.get((tabla, e["id"]), []), key=lambda m: -m[1])
+            e["motivos_aviso"] = motivos
+            e["avisos"] = sum(n for _, n in motivos)
             elementos.append(e)
     elementos.sort(key=lambda e: (e["creado"] or "", e["id"]), reverse=True)
     return elementos
 
 
 def contadores():
-    """Lo pendiente de revisar: elementos retenidos (por el filtro o por aprobar)."""
+    """Lo pendiente de revisar: elementos con avisos y elementos retenidos."""
     return {
+        "avisos": _consultar("SELECT COUNT(*) AS n FROM (SELECT DISTINCT tabla, elemento_id FROM avisos)")[0]["n"],
         "retenidos": _consultar("SELECT (SELECT COUNT(*) FROM mural WHERE retenido = 1) + "
                                 "(SELECT COUNT(*) FROM foro WHERE retenido = 1) AS n")[0]["n"],
     }

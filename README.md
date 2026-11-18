@@ -1,8 +1,9 @@
 # Web contra la violencia de género · 25N
 
 Aplicación Flask para el 25N: el público deja mensajes desde el móvil (QR → `/participa`),
-una persona moderadora los revisa en `/admin` (con ayuda de un filtro automático) y una
-pantalla proyectada (`/pantalla`) va rotando entre el mural de burbujas, el vídeo y las
+un filtro automático decide qué se publica (lo dudoso queda retenido para que la persona
+moderadora lo revise en `/admin`), el público puede avisar de un mensaje inapropiado en `/avisar`
+y una pantalla proyectada (`/pantalla`) va rotando entre el mural de burbujas, el vídeo y las
 reflexiones del foro.
 
 Las tareas están en [`docs/tareas/`](docs/tareas/).
@@ -18,13 +19,15 @@ Cada archivo ya existe con un comentario que indica qué tarea lo rellena.
 ├── wsgi.py                 T05 · entrada de producción (gunicorn)
 ├── bd/
 │   ├── db.py               Acceso a la base de datos (todas las consultas)
-│   ├── schema.sql          Tablas mural y foro (+ filtros y ajustes de T03)
+│   ├── schema.sql          Tablas mural y foro (+ avisos, filtros y ajustes de T03)
 │   ├── filtro.py           T03 · filtro automático de palabras y datos personales
 │   └── filtros_iniciales.txt  T03 · lista de palabras con la que arranca el filtro
 ├── templates/              Plantillas Jinja (HTML)
 │   ├── participa.html      T06 · formulario público
 │   ├── gracias.html        T06 · confirmación
 │   ├── admin.html          T03 · panel de moderación
+│   ├── avisar.html         T03 · el público avisa de un mensaje inapropiado
+│   ├── avisar_elemento.html  T03 · elegir el motivo del aviso
 │   └── pantalla.html       T04/T07/T08/T09/T10 · esqueleto común de la pantalla
 ├── static/
 │   ├── css/
@@ -32,10 +35,12 @@ Cada archivo ya existe con un comentario que indica qué tarea lo rellena.
 │   │   ├── mural.css       T07 · mural de burbujas (lo carga mural.js)
 │   │   ├── video.css       T08 · vista de vídeo (lo carga video.js)
 │   │   ├── participa.css   T06 · estilos del formulario
-│   │   └── admin.css       T03 · estilos del panel
+│   │   ├── admin.css       T03 · estilos del panel
+│   │   └── avisar.css      T03 · estilos de /avisar (sobre participa.css)
 │   ├── js/
 │   │   ├── participa.js    T06 · contador de caracteres del formulario
 │   │   ├── admin.js        T03 · filtros, búsqueda, novedades y confirmación del panel
+│   │   ├── avisar.js       T03 · buscador de /avisar
 │   │   ├── pantalla.js     T04 · rotación de vistas y actualización
 │   │   ├── mural.js        T07 · pintarMural(mensajes)
 │   │   ├── video.js        T08 · iniciarVideo() / pararVideo()
@@ -99,6 +104,8 @@ Nombres de las rutas (el nombre de la función en `app.py` = endpoint de `url_fo
 | `admin_filtro_anadir` | `/admin/filtros` | POST | T03 |
 | `admin_filtro_quitar` | `/admin/filtros/<int:id>/borrar` | POST | T03 |
 | `admin_ajustes` | `/admin/ajustes` | POST | T03 |
+| `avisar` | `/avisar` (público) | GET | T03 |
+| `avisar_elemento` | `/avisar/<tabla>/<int:id>` (público) | GET, POST | T03 |
 
 Usuarios de HTTP Basic Auth: `admin` y `pantalla` (variables `ADMIN_USER`/`PANTALLA_USER` en `.env`),
 con las contraseñas `ADMIN_PASS` y `PANTALLA_PASS`.
@@ -114,6 +121,10 @@ con las contraseñas `ADMIN_PASS` y `PANTALLA_PASS`.
   tildes, plurales, mayúsculas y trucos (`z0rra`, `p.u.t.a`); con `*` al final cubre todo lo que
   empiece igual. La lista y las reglas se cambian desde el panel; la primera vez se carga
   `bd/filtros_iniciales.txt`. El filtro **no** detecta nombres ni lugares.
+- **Avisos del público** (`/avisar`, enlazado desde `/participa` y `/gracias`): quien vea algo
+  inapropiado en la pantalla lo marca y aparece en «Avisos del público» del panel. Por defecto
+  **no retiran nada solos**. La retirada automática al llegar a N avisos es un ajuste opcional y
+  apagado: la cookie anónima que evita contar dos veces el mismo móvil se puede saltar.
 - Los formularios del panel llevan un token CSRF derivado de `ADMIN_PASS`.
 - Una base de datos creada antes de T03 se actualiza sola al arrancar (`init_db()` añade lo que falte).
 

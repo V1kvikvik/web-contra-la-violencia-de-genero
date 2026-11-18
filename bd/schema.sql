@@ -6,7 +6,7 @@
 -- Se publican directamente si pasan el filtro automático (T03); si no, quedan
 -- retenidos (visible = 0, retenido = 1) hasta que moderación decida.
 -- Estados: visible = 1 → en pantalla · retenido = 1 → parado por el filtro ·
---          visible = 0 y retenido = 0 → retirado por moderación.
+--          visible = 0 y retenido = 0 → retirado por moderación o por avisos.
 -- motivo:   por qué está retenido o retirado (solo lo ve moderación).
 -- revisado: 1 si moderación lo publicó a mano; el filtro ya no lo vuelve a retirar.
 -- (En una base de datos anterior, bd/db.py añade retenido, motivo y revisado al arrancar.)
@@ -38,6 +38,21 @@ CREATE TABLE IF NOT EXISTS foro (
 -- Índices para las consultas de la pantalla (/api/mural y /api/foro).
 CREATE INDEX IF NOT EXISTS idx_mural_visible_creado ON mural (visible, creado DESC);
 CREATE INDEX IF NOT EXISTS idx_foro_aprobado_creado ON foro (aprobado, creado DESC);
+
+-- Avisos del público (T03): alguien marca como inapropiado algo que está en pantalla.
+-- Por defecto solo lo marcan en el panel. Si se activa el ajuste retirar_por_avisos, al llegar
+-- a N avisos (avisos_para_ocultar) se retira solo. Cuando moderación decide (mantener o borrar)
+-- se eliminan los avisos de ese elemento.
+CREATE TABLE IF NOT EXISTS avisos (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    tabla       TEXT    NOT NULL CHECK (tabla IN ('mural', 'foro')),
+    elemento_id INTEGER NOT NULL,
+    motivo      TEXT    NOT NULL CHECK (motivo IN ('odio', 'acoso', 'datos', 'otro')),
+    avisador    TEXT    NOT NULL,  -- hash de una cookie anónima: el mismo móvil no cuenta dos veces
+    creado      TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
+    UNIQUE (tabla, elemento_id, avisador)
+);
+CREATE INDEX IF NOT EXISTS idx_avisos_elemento ON avisos (tabla, elemento_id);
 
 -- Palabras y expresiones del filtro automático (T03). Ver bd/filtro.py.
 CREATE TABLE IF NOT EXISTS filtros (

@@ -15,6 +15,8 @@
     <p>Tu mensaje se ha enviado correctamente.</p>
     <p>Si has enviado una reflexión, aparecerá en la pantalla cuando se haya revisado.</p>
     <a class="boton" href="{{ url_for('participa') }}">Enviar otro mensaje</a>
+    {# T03: enlace para avisar de un mensaje inapropiado que haya salido en la pantalla #}
+    <p><a href="{{ url_for('avisar') }}">¿Has visto en la pantalla un mensaje inapropiado? Avísanos</a></p>
   </main>
 </body>
 </html>

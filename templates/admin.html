@@ -2,34 +2,38 @@
 
   Variables:
     elementos  mural y foro juntos, más recientes primero (db.listar_para_panel()):
-               {tabla: 'mural'|'foro', id, titulo, texto, creado, estado, motivo}
+               {tabla: 'mural'|'foro', id, titulo, texto, creado, estado, motivo, avisos, motivos_aviso}
                estado: 'visible' (en pantalla) | 'retenido' (parado por el filtro) | 'oculto' (retirado)
     terminos   [{id, termino}] del filtro de palabras
-    ajustes    {enlaces, correos, telefonos, usuarios, foro_manual: '1'|'0'}
+    ajustes    {enlaces, correos, telefonos, usuarios, foro_manual, retirar_por_avisos: '1'|'0',
+                avisos_para_ocultar}
     csrf       token que lleva cada formulario (ver _token_csrf() en app.py)
     aviso      (opcional) {texto, tipo: 'ok'|'error'} de la última acción
     resaltar   (opcional) 'mural-5' o 'foro-3': la fila de la última acción
 
   Todo el texto lo escapa Jinja: no usar |safe aquí.
-  Sin JavaScript todo funciona; static/js/admin.js añade filtros, búsqueda, el aviso de novedades
+  Sin JavaScript todo funciona; static/js/admin.js añade filtros, búsqueda, avisos de novedades
   y la confirmación antes de borrar.
 -#}
+{%- set avisados = elementos | selectattr('avisos') | list -%}
 {%- set retenidos = elementos | selectattr('estado', 'equalto', 'retenido') | list -%}
 {%- set publicados = elementos | rejectattr('estado', 'equalto', 'retenido') | list -%}
 {%- set en_pantalla = elementos | selectattr('estado', 'equalto', 'visible') | list -%}
 {%- set retirados = elementos | selectattr('estado', 'equalto', 'oculto') | list -%}
-{%- set pendientes = retenidos | length -%}
+{%- set pendientes = avisados | length + retenidos | length -%}
 
 {%- macro icono(n) -%}
 <svg class="adm-icono" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
 {%- if n == 'ocultar' -%}<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>
 {%- elif n == 'publicar' -%}<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+{%- elif n == 'mantener' -%}<polyline points="20 6 9 17 4 12"/>
 {%- elif n == 'borrar' -%}<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
 {%- elif n == 'actualizar' -%}<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
 {%- elif n == 'buscar' -%}<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
 {%- elif n == 'ok' -%}<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
 {%- elif n == 'error' -%}<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
 {%- elif n == 'bandeja' -%}<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+{%- elif n == 'bandera' -%}<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>
 {%- elif n == 'escudo' -%}<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
 {%- elif n == 'mas' -%}<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
 {%- endif -%}
@@ -63,14 +67,21 @@
     </div>
     {% if e.titulo %}<h3 class="adm-titulo">{{ e.titulo }}</h3>{% endif %}
     <p class="adm-texto{{ ' adm-recortado' if seccion == 'pub' and e.titulo }}">{{ e.texto }}</p>
-    {%- if seccion == 'retenidos' %}
+    {%- if seccion == 'avisos' %}
+      <p class="adm-motivo adm-motivo-aviso">{{ icono('bandera') }}<span><b>{{ e.avisos }} {{ 'aviso' if e.avisos == 1 else 'avisos' }}:</b>
+        {% for texto, n in e.motivos_aviso %}{{ texto }}{% if n > 1 %} ({{ n }}){% endif %}{{ ' · ' if not loop.last }}{% endfor %}
+        {%- if e.estado == 'oculto' %}. Ya está retirado de la pantalla.{% endif %}</span></p>
+    {%- elif seccion == 'retenidos' %}
       <p class="adm-motivo">{{ icono('escudo') }}<span>{{ e.motivo }}</span></p>
     {%- elif e.estado == 'oculto' and e.motivo %}
       <p class="adm-motivo adm-motivo-suave">{{ e.motivo }}</p>
     {%- endif %}
   </div>
   <div class="adm-acciones">
-    {%- if seccion == 'retenidos' %}
+    {%- if seccion == 'avisos' %}
+      {{ boton(e, 'publicar', 'Mantener' if e.estado == 'visible' else 'Volver a publicar', '', 'mantener') }}
+      {{ boton(e, 'borrar', 'Borrar', 'adm-btn-peligro') }}
+    {%- elif seccion == 'retenidos' %}
       {{ boton(e, 'publicar', 'Aprobar' if e.tabla == 'foro' else 'Publicar igualmente') }}
       {{ boton(e, 'borrar', 'Borrar', 'adm-btn-peligro') }}
     {%- else %}
@@ -94,7 +105,7 @@
   <title>{% if pendientes %}({{ pendientes }}) {% endif %}Moderación · 25N</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 </head>
-<body class="admin" data-retenidos="{{ retenidos | length }}"
+<body class="admin" data-avisos="{{ avisados | length }}" data-retenidos="{{ retenidos | length }}"
       data-api-estado="{{ url_for('admin_estado') }}">
   <header class="adm-barra">
     <div class="adm-barra-in">
@@ -121,18 +132,35 @@
     <h1 class="solo-lectores">Panel de moderación</h1>
 
     <ul class="adm-resumen" aria-label="Resumen">
+      <li><a class="adm-dato {{ 'adm-dato-peligro' if avisados }}" href="#avisos">
+        <span class="adm-dato-num">{{ avisados | length }}</span><span class="adm-dato-txt">Avisos por revisar</span></a></li>
       <li><a class="adm-dato {{ 'adm-dato-alerta' if retenidos }}" href="#retenidos">
         <span class="adm-dato-num">{{ retenidos | length }}</span><span class="adm-dato-txt">Pendientes de revisar</span></a></li>
       <li><a class="adm-dato" href="#publicado">
         <span class="adm-dato-num">{{ en_pantalla | length }}</span><span class="adm-dato-txt">En pantalla</span></a></li>
-      <li><a class="adm-dato" href="#publicado">
-        <span class="adm-dato-num">{{ retirados | length }}</span><span class="adm-dato-txt">Retirados</span></a></li>
       <li><a class="adm-dato" href="#filtro">
         <span class="adm-dato-num">{{ terminos | length }}</span><span class="adm-dato-txt">Términos en el filtro</span></a></li>
     </ul>
 
     <div id="revision" class="adm-revision">
-      {# ---------- 1. Pendientes: reflexiones por aprobar y lo que ha parado el filtro ---------- #}
+      {# ---------- 1. Avisos del público (/avisar) ---------- #}
+      <section id="avisos" class="adm-panel {{ 'adm-panel-peligro' if avisados }}" aria-labelledby="t-avisos">
+        <header class="adm-panel-cab">
+          <div>
+            <h2 id="t-avisos">{{ icono('bandera') }} Avisos del público <span class="adm-cuenta">{{ avisados | length }}</span></h2>
+            <p>Publicaciones que alguien ha marcado como inapropiadas.
+              {%- if ajustes.retirar_por_avisos == '1' %} Con {{ ajustes.avisos_para_ocultar }} {{ 'aviso' if ajustes.avisos_para_ocultar == '1' else 'avisos' }} se retiran solas de la pantalla hasta que decidas.
+              {%- else %} Siguen en la pantalla hasta que decidas: los avisos no retiran nada solos.{% endif %}</p>
+          </div>
+        </header>
+        {% if avisados %}
+          <ul class="adm-filas">{% for e in avisados %}{{ fila(e, 'avisos') }}{% endfor %}</ul>
+        {% else %}
+          {{ vacio('No hay avisos pendientes.') }}
+        {% endif %}
+      </section>
+
+      {# ---------- 2. Pendientes: reflexiones por aprobar y lo que ha parado el filtro ---------- #}
       <section id="retenidos" class="adm-panel {{ 'adm-panel-alerta' if retenidos }}" aria-labelledby="t-retenidos">
         <header class="adm-panel-cab">
           <div>
@@ -149,7 +177,7 @@
       </section>
     </div>
 
-    {# ---------- 2. Todo lo publicado y lo retirado ---------- #}
+    {# ---------- 3. Todo lo publicado y lo retirado ---------- #}
     <section id="publicado" class="adm-panel" aria-labelledby="t-publicado">
       <header class="adm-panel-cab">
         <div>
@@ -181,7 +209,7 @@
       {% endif %}
     </section>
 
-    {# ---------- 3. Filtro automático ---------- #}
+    {# ---------- 4. Filtro automático ---------- #}
     <section id="filtro" class="adm-panel" aria-labelledby="t-filtro">
       <header class="adm-panel-cab">
         <div>
@@ -244,6 +272,17 @@
               <span>Retener {{ texto }}</span>
             </label>
           {% endfor %}
+
+          <p class="adm-ayuda">Avisos del público: por defecto solo marcan la publicación aquí, en «Avisos del público».</p>
+          <label class="adm-check">
+            <input type="checkbox" name="retirar_por_avisos" value="1" {{ 'checked' if ajustes.retirar_por_avisos == '1' }}>
+            <span>Retirar sola de la pantalla una publicación con muchos avisos</span>
+          </label>
+          <label class="adm-numero">
+            <span>Cuántos avisos:</span>
+            <input type="number" name="avisos_para_ocultar" min="1" max="50" inputmode="numeric" required value="{{ ajustes.avisos_para_ocultar }}">
+          </label>
+          <p class="adm-ayuda">Mejor dejarlo apagado: una sola persona podría vaciar la pantalla enviando avisos. Lo retirado así no se borra: espera a que decidas.</p>
           <button type="submit" class="adm-btn adm-btn-principal">Guardar ajustes</button>
         </form>
       </div>
